@@ -1,0 +1,783 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>이샛별 아나운서 · MC · 성우</title>
+<meta name="description" content="성우 출신의 우아한 보이스와 정확한 전달력, 밝은 에너지로 공식행사부터 레크리에이션까지. 공식행사 · VIP 담당 아나운서 · 팀빌딩 MC · 성우 MC 이샛별.">
+<meta name="theme-color" content="#070b1e">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://smingvoice.github.io/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:site_name" content="이샛별">
+<meta property="og:title" content="이샛별 | 마이크 뒤에선 성우, 마이크 잡으면 MC">
+<meta property="og:description" content="공식행사 · VIP 담당 아나운서 · 팀빌딩 MC · 성우 MC. 우아한 보이스와 정확한 전달력, 밝은 에너지.">
+<meta property="og:url" content="https://smingvoice.github.io/">
+<meta property="og:image" content="https://smingvoice.github.io/assets/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/fonts/pretendard/pretendard.css">
+<link rel="stylesheet" href="assets/css/main.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Person","name":"이샛별","alternateName":"Seat Byeol Lee","jobTitle":["아나운서","MC","성우"],"email":"mailto:smingvoice_1@naver.com","telephone":"+82-10-3975-2039","url":"https://smingvoice.github.io/","image":"https://smingvoice.github.io/assets/og.jpg","sameAs":["https://www.youtube.com/channel/UC5tnF7rfK40ua5MvZp4UO9w","https://www.instagram.com/68.5fit/","https://blog.naver.com/voice_685fit"]}
+</script>
+</head>
+<body>
+<!--PAGE-START-->
+<canvas id="sky" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+
+<div id="intro" class="intro">
+  <canvas class="intro__canvas" aria-hidden="true"></canvas>
+  <div class="intro__top mono"><span>CUE 00</span><span class="intro__status">STAND BY</span></div>
+  <div class="intro__lamp mono" aria-hidden="true"><i></i>ON AIR</div>
+  <p class="intro__line">잠시 후 행사가 시작됩니다</p>
+  <p class="intro__sub mono">ANNOUNCER · MC · VOICE ACTOR</p>
+  <button class="intro__skip mono" type="button">SKIP</button>
+</div>
+
+<header class="nav" id="nav">
+  <a class="nav__brand" href="#top" aria-label="이샛별, 맨 위로">
+    <svg class="star-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5c.6 6.4 2.6 8.4 9 9-6.4.6-8.4 2.6-9 9-.6-6.4-2.6-8.4-9-9 6.4-.6 8.4-2.6 9-9z"/></svg>
+    <span class="nav__name">이샛별</span>
+    <span class="nav__en mono">SEAT BYEOL LEE</span>
+  </a>
+  <nav class="nav__links" aria-label="주요 메뉴">
+    <a href="#about">소개</a>
+    <a href="#voice">목소리</a>
+    <a href="#official">공식행사</a>
+    <a href="#vip">VIP</a>
+    <a href="#team">팀빌딩</a>
+    <a href="#voice-mc">성우MC</a>
+    <a href="#reviews">후기</a>
+  </nav>
+  <div class="nav__tools">
+    <span class="onair mono" aria-hidden="true"><i></i>ON AIR</span>
+    <a class="nav__cta magnetic" href="#contact">섭외 문의</a>
+    <button class="nav__menu" type="button" aria-expanded="false" aria-controls="menu" aria-label="메뉴 열기"><span></span><span></span></button>
+  </div>
+</header>
+
+<div class="menu" id="menu" hidden>
+  <nav class="menu__links" aria-label="전체 메뉴">
+    <a href="#about"><small class="mono">02</small>인사말</a>
+    <a href="#voice"><small class="mono">03</small>목소리</a>
+    <a href="#range"><small class="mono">04</small>진행 스타일</a>
+    <a href="#official"><small class="mono">05</small>공식행사</a>
+    <a href="#vip"><small class="mono">06</small>VIP 담당 아나운서</a>
+    <a href="#team"><small class="mono">07</small>팀빌딩 MC</a>
+    <a href="#voice-mc"><small class="mono">08</small>성우 MC</a>
+    <a href="#reviews"><small class="mono">10</small>후기</a>
+    <a href="#contact"><small class="mono">12</small>섭외 문의</a>
+  </nav>
+  <p class="menu__foot mono">010-3975-2039 · smingvoice_1@naver.com</p>
+</div>
+
+<aside class="cues" aria-hidden="true">
+  <p class="cues__title mono">CUE SHEET</p>
+  <ol>
+    <li data-target="top"><b>01</b><span>오프닝</span></li>
+    <li data-target="about"><b>02</b><span>인사말</span></li>
+    <li data-target="voice"><b>03</b><span>목소리</span></li>
+    <li data-target="range"><b>04</b><span>진행 스타일</span></li>
+    <li data-target="official"><b>05</b><span>공식행사</span></li>
+    <li data-target="vip"><b>06</b><span>VIP 의전</span></li>
+    <li data-target="team"><b>07</b><span>팀빌딩</span></li>
+    <li data-target="voice-mc"><b>08</b><span>성우 MC</span></li>
+    <li data-target="gallery"><b>09</b><span>현장 기록</span></li>
+    <li data-target="reviews"><b>10</b><span>후기</span></li>
+    <li data-target="profile"><b>11</b><span>프로필</span></li>
+    <li data-target="contact"><b>12</b><span>클로징</span></li>
+  </ol>
+  <div class="cues__meter"><i></i></div>
+</aside>
+
+<main id="main">
+
+<!-- CUE 01 · OPENING -->
+<section class="hero" id="top" data-sky="0">
+  <div class="hero__inner wrap">
+    <div class="hero__copy">
+      <p class="eyebrow mono"><span class="rec-dot" aria-hidden="true"></span><span data-scramble>ANNOUNCER · MC · VOICE ACTOR</span></p>
+      <h1 class="hero__title">
+        <span class="ln"><span class="ln__in">마이크 뒤에선 <b>성우</b>,</span></span>
+        <span class="ln"><span class="ln__in">마이크 잡으면 <b class="lat">MC</b>.</span></span>
+      </h1>
+      <p class="hero__name"><span class="hero__ko">이샛별</span><span class="hero__en">Seat Byeol Lee</span></p>
+      <p class="hero__lead">성우 출신의 우아한 보이스와 정확한 전달력, 연극 전공의 표현력에 밝은 에너지를 더해 공식행사부터 레크리에이션까지 이끕니다.</p>
+      <div class="hero__cta">
+        <a class="btn btn--solid magnetic" href="#contact">섭외 문의</a>
+        <button class="btn btn--line magnetic" type="button" data-greet><span class="btn__ico" aria-hidden="true"></span>목소리 듣기</button>
+        <a class="btn btn--text" href="https://www.youtube.com/watch?v=eFtwc8YFw_w" data-video="eFtwc8YFw_w" target="_blank" rel="noopener">프로필 영상 보기<span aria-hidden="true"> ↗</span></a>
+      </div>
+    </div>
+    <figure class="hero__fig">
+      <div class="hero__glow" aria-hidden="true"></div>
+      <img class="hero__img" src="assets/img/cut-hero.webp" width="1200" height="1687" alt="아이보리 수트를 입고 위를 올려다보는 이샛별" fetchpriority="high">
+    </figure>
+  </div>
+  <canvas class="hero__wave" aria-hidden="true"></canvas>
+  <div class="hero__foot wrap mono" aria-hidden="true">
+    <span>CUE 01 · OPENING</span>
+    <span class="hide-sm">공식행사 · VIP 의전 · 팀빌딩 · 성우MC</span>
+    <span class="scroll-hint">SCROLL<i></i></span>
+  </div>
+</section>
+
+<div class="marquee" aria-hidden="true">
+  <div class="marquee__row" data-dir="1"><div class="marquee__track"><span>공식행사</span><i>✦</i><span>VIP 의전</span><i>✦</i><span>팀빌딩</span><i>✦</i><span>성우 MC</span><i>✦</i><span>문화축제</span><i>✦</i><span>레크리에이션</span><i>✦</i></div></div>
+  <div class="marquee__row marquee__row--sub" data-dir="-1"><div class="marquee__track"><span>Official Ceremony</span><i>·</i><span>VIP Protocol</span><i>·</i><span>Team Building</span><i>·</i><span>Voice-Actor MC</span><i>·</i><span>Culture Festival</span><i>·</i><span>Recreation</span><i>·</i></div></div>
+</div>
+
+<!-- CUE 02 · GREETING -->
+<section class="about" id="about" data-sky="1">
+  <div class="wrap about__grid">
+    <div class="about__text">
+      <p class="eyebrow mono"><span data-scramble>CUE 02 · 인사말 · GREETING</span></p>
+      <p class="read" data-read>안녕하세요. 마이크 뒤에선 성우로, 마이크를 잡으면 MC로 무대에 서는 성우 MC 이샛별입니다. 격식이 필요한 자리에선 우아한 목소리로 품격을, 즐거움이 필요한 자리에선 밝은 에너지로 활기를 채웁니다. 행사의 결에 맞춰 목소리의 온도를 조율하는 것, 그것이 제가 진행하는 방식입니다. 여러분의 행사장을 밝혀드리겠습니다.</p>
+      <div class="read__bar">
+        <button class="read__play" type="button" data-greet aria-label="인사말 녹음 듣기"><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg></button>
+        <p class="read__meter mono" aria-hidden="true"><span class="read__dot"></span>READING <span class="read__tc">00:00</span> / <span class="read__total">00:30</span></p>
+      </div>
+    </div>
+    <figure class="about__fig arch" data-tilt>
+      <img src="assets/img/pf-chin.webp" width="900" height="1349" alt="턱을 괴고 정면을 바라보는 이샛별 프로필 사진" loading="lazy">
+    </figure>
+  </div>
+
+  <div class="wrap strengths">
+    <article class="strength">
+      <p class="strength__k mono">우아한 딕션</p>
+      <h3>또박또박, 끝까지 들리는 목소리</h3>
+      <p>방송사, 대·중소기업과 협업해 온 10년 차 성우입니다. 넓은 행사장 맨 뒷줄까지 정확하게 전달합니다.</p>
+    </article>
+    <article class="strength">
+      <p class="strength__k mono">연기하는 MC</p>
+      <h3>무대의 공기를 읽는 표현력</h3>
+      <p>연극을 전공한 배우의 감각과 공감 능력으로 객석의 온도에 맞춰 호흡을 바꿉니다.</p>
+    </article>
+    <article class="strength">
+      <p class="strength__k mono">유연함</p>
+      <h3>공식행사부터 레크리에이션까지</h3>
+      <p>장관이 참석하는 개막식부터 1,200명 학생 레크까지, 행사의 결에 맞는 진행을 설계합니다.</p>
+    </article>
+  </div>
+
+  <div class="wrap stats">
+    <div class="stat"><b class="stat__n" data-count="2016" data-plain>2016</b><span>성우 활동 시작<small>㈜알려줌 콘텐츠 제작팀</small></span></div>
+    <div class="stat"><b class="stat__n" data-count="71">71</b><span>대표 행사 경력<small>2026.10.5 기준</small></span></div>
+    <div class="stat"><b class="stat__n" data-count="1200">1,200</b><span>최대 진행 인원<small>서울잠원초 늘봄학교 레크</small></span></div>
+    <div class="stat"><b class="stat__n" data-count="10">10</b><span>연극 출연작<small>보이체크 · 시련 · 벚꽃동산 외</small></span></div>
+  </div>
+  <ul class="traits wrap mono" aria-label="강점">
+    <li>신뢰감</li><li>책임감</li><li>넓은 시각</li><li>섬세함</li><li>다재다능함</li>
+  </ul>
+</section>
+
+<!-- CUE 03 · VOICE -->
+<section class="voice" id="voice" data-sky="2">
+  <div class="wrap voice__head">
+    <p class="eyebrow mono"><span data-scramble>CUE 03 · 목소리 · BEHIND THE MIC</span></p>
+    <h2 class="h2 split">별을 누르면,<br>목소리가 들립니다.</h2>
+    <p class="voice__lead">2016년 ㈜알려줌 콘텐츠 제작팀 전담 성우로 시작해 광고, 내레이션, 게임, 더빙, 오디오북, 전시 해설까지. 서른두 개의 별에 실제 목소리 샘플을 담았습니다.</p>
+  </div>
+
+  <div class="wrap voice__stage">
+    <div class="chart" id="chart">
+      <canvas class="chart__canvas" aria-hidden="true"></canvas>
+      <p class="chart__hint mono" aria-hidden="true">별을 눌러 들어 보세요</p>
+      <div class="chart__tip" aria-hidden="true"></div>
+    </div>
+    <div class="player" id="player" aria-live="polite">
+      <p class="player__cat mono"><i></i><span>VOICE SAMPLE</span></p>
+      <h3 class="player__title">별자리에서 목소리를 골라 주세요</h3>
+      <p class="player__tags">광고 · 캐릭터 · 내레이션 · CM송 · 교재</p>
+      <canvas class="player__wave" aria-hidden="true"></canvas>
+      <div class="player__bar">
+        <button class="player__btn" type="button" data-act="prev" aria-label="이전 샘플"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6h2v12H7zM20 6v12l-9-6z"/></svg></button>
+        <button class="player__btn player__btn--main" type="button" data-act="toggle" aria-label="재생"><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg></button>
+        <button class="player__btn" type="button" data-act="next" aria-label="다음 샘플"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6h2v12h-2zM4 6v12l9-6z"/></svg></button>
+        <span class="player__time mono"><span class="player__cur">00:00</span> / <span class="player__dur">00:00</span></span>
+      </div>
+      <ul class="legend mono" aria-hidden="true">
+        <li data-cat="ad"><i></i>광고</li><li data-cat="char"><i></i>캐릭터</li><li data-cat="narr"><i></i>내레이션</li><li data-cat="cm"><i></i>CM송</li><li data-cat="edu"><i></i>교재</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="wrap tracks" id="tracks">
+    <!-- filled from the sample list in voice.js; the static list below is the no-script fallback -->
+    <noscript><p>목소리 샘플 재생에는 자바스크립트가 필요합니다.</p></noscript>
+  </div>
+
+  <div class="wrap credits">
+    <div class="credits__head">
+      <h3 class="h3">성우 크레딧</h3>
+      <p class="mono">REC · 2016 —</p>
+    </div>
+    <div class="daw" aria-label="성우 작업 분야별 대표 크레딧">
+      <div class="daw__playhead" aria-hidden="true"><span class="mono">REC</span></div>
+      <div class="daw__track" data-speed="0.6">
+        <p class="daw__label mono">드라마 · 영화</p>
+        <ul class="daw__clips"><li>ENA &lt;그대에게 드림&gt; 혜리 · 후시더빙</li><li>KBS2 &lt;욕망의 덫&gt; 간호사 · 후시더빙</li><li>영화 &lt;마이 리틀 레나타&gt; 클라우디아 이모 · 외화더빙</li><li>보이스2 드라마 소개 · OCN 송출</li></ul>
+      </div>
+      <div class="daw__track" data-speed="-0.5">
+        <p class="daw__label mono">광고</p>
+        <ul class="daw__clips"><li>쿠팡</li><li>NAVER 클로바노트</li><li>할리스</li><li>크리넥스 마스크</li><li>현대모비스</li><li>NEXON</li><li>SK텔레콤</li><li>브리타 정수기</li><li>NH농협은행 올원뱅크</li><li>아모레퍼시픽 77주년 브랜드필름</li><li>하기스</li><li>폴바셋</li></ul>
+      </div>
+      <div class="daw__track" data-speed="0.45">
+        <p class="daw__label mono">오디오북</p>
+        <ul class="daw__clips"><li>윌라 &lt;처음 읽는 여성 철학사&gt;</li><li>윌라 &lt;달고나, 예리!&gt;</li><li>윌라 &lt;생각보다 훨씬 좋아해&gt;</li><li>밀리의서재 &lt;감정과 사랑 심리학&gt;</li><li>밀리의서재 &lt;불편한 편의점 2&gt; 소진 외 3역</li></ul>
+      </div>
+      <div class="daw__track" data-speed="-0.7">
+        <p class="daw__label mono">게임</p>
+        <ul class="daw__clips"><li>타워 오브 판타지 '연묘'</li><li>디스라이트 '니콜'</li><li>어비스 데스티니 '눈의 여왕'</li><li>덱스터스튜디오 VR &lt;선택&gt; 주인공 '지은'</li><li>메카아라시</li><li>천지겁</li><li>신조협려 '곽양'</li><li>크로스파이어 시에라 스쿼드</li></ul>
+      </div>
+      <div class="daw__track" data-speed="0.55">
+        <p class="daw__label mono">전시 해설</p>
+        <ul class="daw__clips"><li>삼성리움미술관 &lt;인간, 일곱 개의 질문&gt;展</li><li>&lt;조선의 백자, 군자지향&gt;</li><li>마우리치오 카텔란 전</li><li>김범 &lt;바위가 되는 법&gt;</li><li>강서경 &lt;버들 북 꾀꼬리&gt;</li><li>더현대 서울</li><li>국립민속박물관 어린이박물관</li><li>한국만화박물관</li></ul>
+      </div>
+      <div class="daw__track" data-speed="-0.4">
+        <p class="daw__label mono">방송 · AI</p>
+        <ul class="daw__clips"><li>넷플릭스 &lt;범인은 바로 너!&gt; 소개</li><li>M-net &lt;쇼미더머니 777&gt;</li><li>M-net &lt;프로듀스 48&gt;</li><li>OCN &lt;보이스3&gt; 요약</li><li>대한민국 대법원 국민참여재판 캠페인</li><li>LG전자 ThinQ 후시더빙</li><li>웹툰 &lt;후회는 없습니다&gt; PV</li><li>포지큐브 음성합성 AI 데이터베이스</li><li>크래프톤 AI 빅데이터 연기</li></ul>
+      </div>
+    </div>
+    <p class="credits__note">㈜알려줌 콘텐츠 제작팀 성우(2016.07–2019.12)로 KBS, JTBC, OCN, M-net, tvN, 유니세프, 한화생명, LG전자, KT, 삼성, 카카오, CJ, CGV 등 채널 내 전 프로젝트를 맡았습니다.</p>
+  </div>
+
+  <div class="wrap reels">
+    <div class="reels__head"><h3 class="h3">유튜브로 듣는 톤</h3><a class="link mono" href="https://www.youtube.com/channel/UC5tnF7rfK40ua5MvZp4UO9w/videos" target="_blank" rel="noopener">유튜브 채널 · 이샛별 ↗</a></div>
+    <div class="reels__grid">
+      <a class="reel" href="https://www.youtube.com/watch?v=hpb1A1LTkxI" data-video="hpb1A1LTkxI" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/hpb1A1LTkxI.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">트렌디한 톤</span><span class="reel__t">네이버 클로바노트 제품 홍보</span></a>
+      <a class="reel" href="https://www.youtube.com/watch?v=N8gC-XLyoSs" data-video="N8gC-XLyoSs" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/N8gC-XLyoSs.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">밝고 맑은 광고 톤</span><span class="reel__t">할리스 홀케이크 광고</span></a>
+      <a class="reel" href="https://www.youtube.com/watch?v=IcL6PO4_134" data-video="IcL6PO4_134" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/IcL6PO4_134.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">맑고 청아한 톤</span><span class="reel__t">유한킴벌리 크리넥스 마스크</span></a>
+      <a class="reel" href="https://www.youtube.com/watch?v=jzlMH6tZitE" data-video="jzlMH6tZitE" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/jzlMH6tZitE.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">청아하고 감성적인 톤</span><span class="reel__t">현대글로비스 화물차 운전기사 공익캠페인</span></a>
+      <a class="reel" href="https://www.youtube.com/watch?v=J57Mym5t-tk" data-video="J57Mym5t-tk" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/J57Mym5t-tk.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">러블리한 20대 내추럴 톤</span><span class="reel__t">이케아 여름 홈파티</span></a>
+      <a class="reel" href="https://www.youtube.com/watch?v=DvCBORj0YXc" data-video="DvCBORj0YXc" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/DvCBORj0YXc.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">밝고 지적인 톤</span><span class="reel__t">M-net 쇼미더머니 777 관전 팁</span></a>
+      <a class="reel" href="https://www.youtube.com/watch?v=gQaB-g4y_LU" data-video="gQaB-g4y_LU" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/gQaB-g4y_LU.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">매력적인 진중한 톤</span><span class="reel__t">OCN 보이스3 보기 전 시즌2 요약</span></a>
+      <a class="reel" href="https://www.youtube.com/watch?v=t9UKJzdTPQc" data-video="t9UKJzdTPQc" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/t9UKJzdTPQc.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">지적이고 매력적인 톤</span><span class="reel__t">넷플릭스 예능 범인은 바로 너! 홍보</span></a>
+    </div>
+    <div class="reels__head reels__head--sub"><h3 class="h3">게임 · 더빙 캐릭터</h3></div>
+    <div class="reels__grid">
+      <a class="reel" href="https://www.youtube.com/watch?v=tOgOaMuUrhw" data-video="tOgOaMuUrhw" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/tOgOaMuUrhw.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">게임 CV</span><span class="reel__t">타워 오브 판타지 '연묘'</span></a>
+      <a class="reel" href="https://www.youtube.com/watch?v=dLZ6m5UT6QY" data-video="dLZ6m5UT6QY" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/dLZ6m5UT6QY.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">VR 게임 주연</span><span class="reel__t">덱스터스튜디오 &lt;선택 VR&gt; 주인공 지은</span></a>
+      <a class="reel" href="https://www.youtube.com/watch?v=cv1OemwbNrA" data-video="cv1OemwbNrA" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/cv1OemwbNrA.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">게임 세계관 영상</span><span class="reel__t">어비스 데스티니 '눈의 여왕'</span></a>
+      <a class="reel" href="https://www.youtube.com/watch?v=B_mvh-qM7TU" data-video="B_mvh-qM7TU" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/B_mvh-qM7TU.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">후시더빙</span><span class="reel__t">LG전자 베스트동행케어서비스 · 일반인 내추럴 톤</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- CUE 04 · RANGE -->
+<section class="range" id="range" data-sky="3">
+  <div class="range__pin">
+    <div class="wrap range__head">
+      <p class="eyebrow mono"><span data-scramble>CUE 04 · 진행 스타일 · RANGE</span></p>
+      <h2 class="h2 split">공식부터 레크까지,<br>행사의 <em>텐션</em>을 조율합니다.</h2>
+    </div>
+    <div class="wrap range__stage">
+      <div class="range__visual">
+        <div class="range__photos">
+          <figure class="is-on"><img src="assets/img/ev-vip.webp" width="975" height="651" alt="전시장에서 VIP 투어를 안내하는 모습" loading="lazy"><figcaption class="mono">삼성 스마트공장 비즈엑스포 VIP 투어</figcaption></figure>
+          <figure><img src="assets/img/ev-mou.webp" width="1400" height="937" alt="공식행사장에서 진행을 맡은 뒷모습" loading="lazy"><figcaption class="mono">고용노동부 × 한국산업인력공단 합동행사</figcaption></figure>
+          <figure><img src="assets/img/ev-goyang.webp" width="1400" height="788" alt="고양시 공직자 워크숍 아이스브레이킹 무대" loading="lazy"><figcaption class="mono">2026 고양시 공직자 워크숍 ICE BREAKING</figcaption></figure>
+          <figure><img src="assets/img/ev-samsung.webp" width="1400" height="788" alt="연회장을 가득 채운 기업 송년회" loading="lazy"><figcaption class="mono">삼성전자 송년회 레크 (200명)</figcaption></figure>
+        </div>
+        <canvas class="range__wave" aria-hidden="true"></canvas>
+        <p class="range__word" aria-hidden="true"><span class="range__en">Elegant</span></p>
+      </div>
+      <div class="range__panel">
+        <div class="range__readout mono" aria-hidden="true">
+          <div class="ro"><span>TONE</span><i class="ro__bar"><b data-ro="tone"></b></i><em data-ro-n="tone">96</em></div>
+          <div class="ro"><span>ENERGY</span><i class="ro__bar"><b data-ro="energy"></b></i><em data-ro-n="energy">12</em></div>
+          <div class="ro"><span>TEMPO</span><i class="ro__bar"><b data-ro="tempo"></b></i><em data-ro-n="tempo">72</em></div>
+        </div>
+        <div class="range__copy" aria-live="polite">
+          <p class="range__mode mono">MODE 01 · 의전</p>
+          <h3 class="range__title">VIP 의전 아나운싱</h3>
+          <p class="range__desc">장관과 기업 대표가 함께하는 VIP 투어. 동선과 시간을 지키며 한 마디도 흐트러지지 않는 차분한 진행.</p>
+        </div>
+      </div>
+    </div>
+    <div class="wrap">
+      <div class="fader" role="slider" tabindex="0" aria-label="진행 텐션" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="의전">
+        <div class="fader__track"><i class="fader__fill"></i></div>
+        <div class="fader__ticks mono"><span>의전</span><span>공식행사</span><span>팀빌딩</span><span>레크</span></div>
+        <div class="fader__knob"><span class="mono">DRAG</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="stages" id="stages">
+  <nav class="stages__nav mono" aria-label="네 가지 무대">
+    <a href="#official">공식행사</a>
+    <a href="#vip">VIP 담당 아나운서</a>
+    <a href="#team">팀빌딩 MC</a>
+    <a href="#voice-mc">성우 MC</a>
+    <i class="stages__bar" aria-hidden="true"></i>
+  </nav>
+
+  <!-- CUE 05 · OFFICIAL -->
+  <section class="stage stage--official" id="official" data-sky="4">
+    <header class="stage__head wrap">
+      <p class="eyebrow mono"><span data-scramble>CUE 05 · STAGE 01</span></p>
+      <h2 class="stage__title"><span class="stage__en" data-axis>Ceremony</span><span class="stage__ko">공식행사</span></h2>
+      <p class="stage__pitch">성우 출신의 우아한 딕션과 고품격 진행.<br><b>정확한 전달력 × 신뢰감</b></p>
+    </header>
+    <div class="collage wrap">
+      <figure class="pic pic--a" data-speed="0.85"><img src="assets/img/ev-pilotday.webp" width="1100" height="1654" alt="2025년 도선사의 날 기념식에서 마이크를 든 이샛별" loading="lazy"><figcaption class="mono">2025 도선사의 날 기념식</figcaption></figure>
+      <figure class="pic pic--b" data-speed="1.12"><img src="assets/img/ev-neulbom.webp" width="1100" height="655" alt="늘봄센터 개소식 무대" loading="lazy"><figcaption class="mono">인천광역시교육청 동부거점 늘봄센터 개소식</figcaption></figure>
+      <figure class="pic pic--c" data-speed="0.95"><img src="assets/img/ev-smartfarm.webp" width="1000" height="1333" alt="스마트농업 성과공유회 무대 위의 이샛별" loading="lazy"><figcaption class="mono">2025 스마트농업 전문교육 성과공유회</figcaption></figure>
+      <figure class="pic pic--d" data-speed="1.2"><img src="assets/img/ev-veterans.webp" width="928" height="608" alt="전몰군경유족회 창립기념 행사장" loading="lazy"><figcaption class="mono">대한민국 전몰군경유족회 창립기념식</figcaption></figure>
+    </div>
+    <div class="hls wrap">
+      <article class="hl"><p class="hl__t mono">MOU 체결식</p><h3>고용노동부 × 한국산업인력공단 합동행사</h3><p class="hl__v">고용노동부 국장 참석</p></article>
+      <article class="hl"><p class="hl__t mono">개소식</p><h3>인천광역시교육청 동부거점 늘봄센터</h3><p class="hl__v">인천시 교육감 참석</p></article>
+      <article class="hl"><p class="hl__t mono">교류의 날</p><h3>군포 소상공인 교류의 날</h3><p class="hl__v">군포시장 · 국회의원 참석</p></article>
+      <article class="hl"><p class="hl__t mono">발대식</p><h3>2026 개인정보불법유통대응 모니터링단</h3><p class="hl__v">정보통신 위원장 참석</p></article>
+    </div>
+    <div class="ledger wrap" data-preview>
+      <div class="ledger__head"><h3 class="h3">공식행사 경력</h3><span class="mono">26 EVENTS</span></div>
+      <ul class="ledger__list">
+        <li data-img="ev-mou"><span class="t mono">MOU체결식</span><span class="n">고용노동부 &amp; 한국산업인력공단 합동행사</span><span class="v">고용노동부 국장 참석</span></li>
+        <li data-img="ev-smartfarm"><span class="t mono">성과공유회</span><span class="n">2025 스마트 농업전문교육 성과공유회</span></li>
+        <li><span class="t mono">경진대회</span><span class="n">대구경북과학기술원 창업경진대회</span></li>
+        <li data-img="ev-neulbom"><span class="t mono">개소식</span><span class="n">인천광역시교육청 동부거점 늘봄센터</span><span class="v">인천시 교육감 참석</span></li>
+        <li><span class="t mono">연수</span><span class="n">2026 경기도 경계선지능인 평생교육 지원센터 설치·운영 사업 지원연수</span></li>
+        <li><span class="t mono">신년회</span><span class="n">한국암재활협회 토닥토닥 신년회</span></li>
+        <li><span class="t mono">신년회</span><span class="n">박보건 부자마인드 토크쇼</span></li>
+        <li data-img="ev-veterans"><span class="t mono">창립기념식</span><span class="n">대한민국 전몰군경유족회</span></li>
+        <li data-img="ev-pilotday2"><span class="t mono">창립기념식</span><span class="n">한국도선사협회 도선사의 날</span></li>
+        <li><span class="t mono">기념식</span><span class="n">WE WALK 걷기대회</span></li>
+        <li><span class="t mono">영화제</span><span class="n">문화체육관광부 태교영화제</span></li>
+        <li data-img="ev-incheonbook"><span class="t mono">워크숍</span><span class="n">인천독서대전 워크숍</span></li>
+        <li data-img="ev-socialfair"><span class="t mono">박람회</span><span class="n">인천시 사회적경제박람회</span></li>
+        <li><span class="t mono">이취임식</span><span class="n">재경고흥군 향우회 회장 이취임식</span></li>
+        <li><span class="t mono">이취임식</span><span class="n">대관령청년회의소 회장 이취임식</span></li>
+        <li><span class="t mono">이취임식</span><span class="n">서울특별시화물자동차운송주선연합회</span></li>
+        <li><span class="t mono">설명회</span><span class="n">군포 트리아츠 지식산업센터 설명회</span></li>
+        <li><span class="t mono">교류의 날</span><span class="n">군포 소상공인 교류의 날</span><span class="v">군포시장 · 국회의원 참석</span></li>
+        <li><span class="t mono">페스티벌</span><span class="n">제주청년센터 끼리 페스티벌</span></li>
+        <li><span class="t mono">기념식</span><span class="n">재경고흥군 향우청년회 제45대 체육대회 기념식 · 입장식</span></li>
+        <li data-img="ev-football"><span class="t mono">고별전</span><span class="n">고양시 무원풋볼클럽 고별전</span></li>
+        <li><span class="t mono">정기총회</span><span class="n">화웅 챔피언스 나잇 공식행사</span></li>
+        <li><span class="t mono">시상식</span><span class="n">메타리치 어워드 2026 시상식</span></li>
+        <li><span class="t mono">발대식</span><span class="n">2026 개인정보불법유통대응 모니터링단 발대식</span><span class="v">정보통신 위원장 참석</span></li>
+        <li><span class="t mono">토크쇼</span><span class="n">38만 유튜버 북토크의 북토크쇼</span></li>
+        <li><span class="t mono">도서관</span><span class="n">인천남동구립도서관 2026 도서관 문화한마당</span></li>
+      </ul>
+      <button class="ledger__more mono" type="button" aria-expanded="false">전체 26건 보기</button>
+    </div>
+    <div class="shorts wrap">
+      <a class="reel" href="https://www.youtube.com/watch?v=pfh-BqpVL7I" data-video="pfh-BqpVL7I" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/pfh-BqpVL7I.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">MOU · 시상식</span><span class="reel__t">고용노동부 × 한국산업인력공단 합동행사</span></a>
+      <a class="reel" href="https://www.youtube.com/watch?v=QFIVFCK1C9A" data-video="QFIVFCK1C9A" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/QFIVFCK1C9A.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">창립기념식</span><span class="reel__t">한국도선사협회 창립 48주년 · 2025 도선사의 날</span></a>
+      <a class="reel" href="https://www.youtube.com/watch?v=Jx9qi_2OCfc" data-video="Jx9qi_2OCfc" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/Jx9qi_2OCfc.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">이취임식</span><span class="reel__t">이취임식 행사 진행 다시보기</span></a>
+      <a class="reel" href="https://www.youtube.com/watch?v=_b2PNMNCgGk" data-video="_b2PNMNCgGk" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/_b2PNMNCgGk.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">개소식</span><span class="reel__t">인천광역시교육청 동부거점형 늘봄센터 개소식</span></a>
+    </div>
+  </section>
+
+  <!-- CUE 06 · VIP -->
+  <section class="stage stage--vip" id="vip" data-sky="5">
+    <header class="stage__head wrap">
+      <p class="eyebrow mono"><span data-scramble>CUE 06 · STAGE 02</span></p>
+      <h2 class="stage__title"><span class="stage__en" data-axis>VIP Protocol</span><span class="stage__ko">VIP 담당 아나운서</span></h2>
+      <p class="stage__pitch">전시장 VIP 투어와 의전 진행.<br><b>동선과 시간, 한 문장의 무게까지 책임집니다.</b></p>
+    </header>
+    <div class="route wrap">
+      <svg class="route__svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path class="route__base" d="M50 0 C 50 8, 18 10, 18 22 S 82 34, 82 47 S 18 60, 18 73 S 50 88, 50 100"/><path class="route__line" d="M50 0 C 50 8, 18 10, 18 22 S 82 34, 82 47 S 18 60, 18 73 S 50 88, 50 100"/></svg>
+      <article class="badge badge--l">
+        <span class="badge__hole" aria-hidden="true"></span>
+        <p class="badge__ribbon mono">VIP TOUR · 2026</p>
+        <h3>2026 한자전 개막식 VIP 투어 MC</h3>
+        <p class="badge__venue">삼성 스마트비즈엑스포</p>
+        <ul class="badge__guests"><li>중기부 장관</li><li>삼성전자 사장</li><li>중기중앙회 회장</li><li>동반성장위원회 위원장</li><li>인공지능제조혁신 추진단장</li><li>대중소 협력재단 사무총장</li><li>여야 국회의원</li><li>참여기업 대표</li></ul>
+      </article>
+      <article class="badge badge--r">
+        <span class="badge__hole" aria-hidden="true"></span>
+        <p class="badge__ribbon mono">VIP TOUR · 2025</p>
+        <h3>2025 한자전 개막식 VIP 투어</h3>
+        <p class="badge__venue">삼성 스마트비즈엑스포</p>
+        <ul class="badge__guests"><li>산자부 차관</li><li>전자진흥회 회장</li><li>국회의원</li><li>스마트공장 자문위원</li><li>상생경영자문단</li><li>동반성장위원회</li></ul>
+      </article>
+      <article class="badge badge--l">
+        <span class="badge__hole" aria-hidden="true"></span>
+        <p class="badge__ribbon mono">VIP MC</p>
+        <h3>제1회 RAD KOREA WEEK VIP 담당 MC</h3>
+        <p class="badge__venue">행정안전부 장관 참석</p>
+      </article>
+      <article class="badge badge--r">
+        <span class="badge__hole" aria-hidden="true"></span>
+        <p class="badge__ribbon mono">DOCENT</p>
+        <h3>(전) 국가IT전시관 VIP 담당 도슨트</h3>
+        <p class="badge__venue">한국어 VIP 해설</p>
+      </article>
+    </div>
+    <div class="vip__media wrap">
+      <figure class="pic pic--wide" data-speed="0.9"><img src="assets/img/ev-vip.webp" width="975" height="651" alt="정장 차림의 VIP 일행을 이끌며 전시를 안내하는 모습" loading="lazy"><figcaption class="mono">삼성 스마트공장 비즈엑스포 VIP 투어</figcaption></figure>
+      <figure class="pic pic--tall" data-speed="1.15"><img src="assets/img/ev-kintex.webp" width="900" height="1598" alt="킨텍스 2024 경기글로벌대전 포토월 앞의 이샛별" loading="lazy"><figcaption class="mono">2024 경기글로벌대전 · 킨텍스</figcaption></figure>
+    </div>
+    <blockquote class="pull wrap">
+      <p>“특히 삼성 측에서 도슨트를 걱정하셨는데, 삼성 측에서도 잘 진행됐다고 칭찬 주셨습니다.”</p>
+      <cite class="mono">VIP 투어 행사 관계자</cite>
+    </blockquote>
+    <div class="docent wrap">
+      <p class="docent__k mono">VOICE DOCENT</p>
+      <p class="docent__t">전시 해설 내레이션 경력이 VIP 도슨트의 기본기가 됩니다. 삼성리움미술관 기획전 &lt;인간, 일곱 개의 질문&gt;, &lt;조선의 백자, 군자지향&gt;, 마우리치오 카텔란, 김범, 강서경 전시 해설과 더현대 서울, 국립민속박물관 어린이박물관 해설을 녹음했습니다.</p>
+      <button class="btn btn--line btn--sm magnetic" type="button" data-play="n1"><span class="btn__ico" aria-hidden="true"></span>리움미술관 전시 해설 듣기</button>
+    </div>
+    <a class="vfeature" href="https://www.youtube.com/watch?v=ytgijl2LxyU" data-video="ytgijl2LxyU" target="_blank" rel="noopener">
+      <span class="vfeature__thumb"><img src="assets/img/yt/ytgijl2LxyU-lg.webp" width="1280" height="720" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span>
+      <span class="vfeature__body">
+        <span class="vfeature__k mono">VIP TOUR · 2025 · 현장 영상</span>
+        <span class="vfeature__t">삼성 스마트비즈엑스포 2025 전시장 VIP 투어</span>
+        <span class="vfeature__d">산자부 차관과 전자진흥회 회장 등 VIP를 모시고, 삼성 스마트공장 지원사업 10주년과 이번 엑스포의 의미를 전한 투어 진행 현장입니다.</span>
+        <span class="vfeature__tags"><em>산자부 차관</em><em>전자진흥회 회장</em><em>국회의원</em><em>스마트공장 자문위원</em></span>
+        <span class="vfeature__cta mono">영상 보기<i aria-hidden="true"></i></span>
+      </span>
+    </a>
+  </section>
+
+  <!-- CUE 07 · TEAM -->
+  <section class="stage stage--team" id="team" data-sky="6">
+    <header class="stage__head wrap">
+      <p class="eyebrow mono"><span data-scramble>CUE 07 · STAGE 03</span></p>
+      <h2 class="stage__title"><span class="stage__en" data-axis data-soft>Team Building</span><span class="stage__ko">팀빌딩 MC</span></h2>
+      <p class="stage__pitch">기업과 기관 목표 달성의 든든한 촉진자.<br><b>긴장은 풀고, 몰입은 높입니다.</b></p>
+    </header>
+    <div class="dominoes wrap" aria-label="진행 프로그램">
+      <span class="domino">팀미션</span><span class="domino">타임헌터</span><span class="domino">매트릭스</span><span class="domino">팀플러너</span><span class="domino">비전도미노</span><span class="domino">매트릭스 레이스</span><span class="domino">드림카</span><span class="domino">팀스포츠</span>
+    </div>
+    <div class="team__grid wrap">
+      <figure class="pic pic--wide" data-speed="0.9"><img src="assets/img/ev-goyang.webp" width="1400" height="788" alt="고양시 공직자 워크숍 무대에서 진행하는 모습" loading="lazy"><figcaption class="mono">2026 고양시 공직자 워크숍</figcaption></figure>
+      <figure class="pic pic--sq" data-speed="1.1"><img src="assets/img/ev-kbiz.webp" width="855" height="867" alt="팀플레이 조끼를 입은 진행팀과 함께한 단체 사진" loading="lazy"><figcaption class="mono">중소기업협동조합 실무자협의회 워크숍</figcaption></figure>
+      <figure class="pic pic--sq" data-speed="1.2"><img src="assets/img/ev-teamplay.webp" width="810" height="823" alt="팀빌딩 조끼를 입고 참가자를 이끄는 이샛별" loading="lazy"><figcaption class="mono">팀빌딩 현장</figcaption></figure>
+      <figure class="pic pic--wide" data-speed="0.95"><img src="assets/img/ev-everland.webp" width="1400" height="788" alt="Over the Wall Outdoor 무대 위 단체 사진" loading="lazy"><figcaption class="mono">Over the Wall Outdoor · 2026.03.12</figcaption></figure>
+    </div>
+    <div class="clients wrap">
+      <div class="ledger__head"><h3 class="h3">팀빌딩 경력</h3><span class="mono">13 PROGRAMS</span></div>
+      <ul class="clients__list">
+        <li><b>고양특례시</b><span>시장님과 6급 공직자 소통 프로그램 · 2026</span><em class="mono">팀미션</em></li>
+        <li><b>고양특례시</b><span>시장님과 7급 공직자 소통 프로그램 · 2026</span><em class="mono">팀미션</em></li>
+        <li><b>삼성전자</b><span>조직강화 파운드리 1–3차시 · 2026</span><em class="mono">팀빌딩</em></li>
+        <li><b>한국과학기술연구원</b><span>KIST 팀빌딩</span><em class="mono">타임헌터</em></li>
+        <li><b>삼성인력개발원</b><span>SVC 6차시</span><em class="mono">매트릭스</em></li>
+        <li><b>삼성인력개발원</b><span>팀빌딩 과정</span><em class="mono">팀플러너</em></li>
+        <li><b>삼성전자 로지텍</b><span>팀빌딩</span><em class="mono">비전도미노</em></li>
+        <li><b>한국철도공사</b><span>팀빌딩</span><em class="mono">매트릭스 레이스</em></li>
+        <li><b>넥센타이어</b><span>승급자 과정</span><em class="mono">드림카</em></li>
+        <li><b>서울대학교</b><span>신입생 팀빌딩</span><em class="mono">타임헌터</em></li>
+        <li><b>삼성인력개발원</b><span>SVP 경력입문 프로그램 6–8차</span><em class="mono">팀플러너</em></li>
+        <li><b>한국중소기업협동조합</b><span>팀빌딩</span><em class="mono">팀스포츠</em></li>
+        <li><b>삼성전자</b><span>ValueCamp</span><em class="mono">매트릭스</em></li>
+      </ul>
+      <p class="clients__cert mono">한국팀빌딩MC협회 소속 MC · 팀빌딩 액티비티 프로그램 전문가 1급</p>
+    </div>
+
+    <div class="rec wrap" id="rec">
+      <div class="rec__head">
+        <p class="eyebrow mono">+ RECREATION</p>
+        <h3 class="h2 split">청중을 압도하는 에너지</h3>
+        <p class="rec__lead">16번의 레크리에이션에서 만난 관객 <b class="rec__total">4,800</b>명. 행사를 고르면 그날의 객석이 별빛으로 채워집니다.</p>
+      </div>
+      <div class="rec__body">
+        <div class="crowd">
+          <canvas class="crowd__canvas" aria-hidden="true"></canvas>
+          <p class="crowd__count"><b class="crowd__n">4,800</b><span class="crowd__label mono">16 EVENTS · TOTAL</span></p>
+        </div>
+        <ul class="rec__list">
+          <li data-n="1200"><span class="t mono">학단레크</span><span class="n">서울잠원초 늘봄학교</span><span class="c">1,200명</span></li>
+          <li data-n="1000"><span class="t mono">학단레크</span><span class="n">서울묘곡초 늘봄학교</span><span class="c">1,000명</span></li>
+          <li data-n="500"><span class="t mono">단체레크</span><span class="n">오징어게임 옥정 e-편한</span><span class="c">500명</span></li>
+          <li data-n="400"><span class="t mono">단체레크</span><span class="n">도전골든벨 태왕아너스</span><span class="c">400명</span></li>
+          <li data-n="400"><span class="t mono">학단레크</span><span class="n">태안 청포대 선셋 수련관</span><span class="c">400명</span></li>
+          <li data-n="200"><span class="t mono">기업송년회</span><span class="n">삼성전자 DA 선행개발팀</span><span class="c">200명</span></li>
+          <li data-n="200"><span class="t mono">단체레크</span><span class="n">가정의 달 세븐블럭캠핑장</span><span class="c">200명</span></li>
+          <li data-n="150"><span class="t mono">단체레크</span><span class="n">후에고 할로윈데이</span><span class="c">150명</span></li>
+          <li data-n="100"><span class="t mono">정부행사</span><span class="n">재정경제부 부모님 감사행사</span><span class="c">100명</span></li>
+          <li data-n="100"><span class="t mono">협회레크</span><span class="n">제1회 청능사의 날</span><span class="c">100명</span></li>
+          <li data-n="100"><span class="t mono">기업레크</span><span class="n">제2회 화웅 챔피언스 나잇</span><span class="c">100명</span></li>
+          <li data-n="100"><span class="t mono">기업레크</span><span class="n">BK트레이딩 워크숍</span><span class="c">100명</span></li>
+          <li data-n="100"><span class="t mono">기관레크</span><span class="n">원주시 미래경제교육관</span><span class="c">100명</span></li>
+          <li data-n="100"><span class="t mono">단체레크</span><span class="n">하남 제일리틀야구단 송년회</span><span class="c">100명</span></li>
+          <li data-n="100"><span class="t mono">학단레크</span><span class="n">인천인성여중</span><span class="c">100명</span></li>
+          <li data-n="50"><span class="t mono">학단레크</span><span class="n">인천여고</span><span class="c">50명</span></li>
+        </ul>
+      </div>
+      <blockquote class="pull pull--sm">
+        <p>“어제 행사 호평이 많습니다. 역대 가장 높은 텐션이라며 다들 즐거운 시간이었다고 하네요. 아나운서님 덕분입니다.”</p>
+        <cite class="mono">삼성 행사 담당자</cite>
+      </blockquote>
+      <div class="shorts">
+        <a class="reel" href="https://www.youtube.com/watch?v=ZSJRMviXwTk" data-video="ZSJRMviXwTk" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/ZSJRMviXwTk.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">기업 레크</span><span class="reel__t">기업 송년회 레크리에이션</span></a>
+        <a class="reel" href="https://www.youtube.com/watch?v=pd6fKZijZqM" data-video="pd6fKZijZqM" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/pd6fKZijZqM.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">레크</span><span class="reel__t">샛별레크 댄스챌린지 + 클로징</span></a>
+        <a class="reel" href="https://www.youtube.com/watch?v=VTCAf6I32Sg" data-video="VTCAf6I32Sg" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/VTCAf6I32Sg.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">가족 행사</span><span class="reel__t">어린이날 레크 · 캠핑장 미니체육대회</span></a>
+        <a class="reel" href="https://www.youtube.com/watch?v=HmNlODEUgBM" data-video="HmNlODEUgBM" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/HmNlODEUgBM.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">팀빌딩</span><span class="reel__t">종이 한 장으로 진행하는 팀빌딩 매트릭스</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CUE 08 · VOICE MC -->
+  <section class="stage stage--voicemc" id="voice-mc" data-sky="7">
+    <header class="stage__head wrap">
+      <p class="eyebrow mono"><span data-scramble>CUE 08 · STAGE 04</span></p>
+      <h2 class="stage__title"><span class="stage__en" data-axis data-soft>Voice on Stage</span><span class="stage__ko">성우 MC</span></h2>
+      <p class="stage__pitch">마이크 뒤에선 성우, 마이크 잡으면 MC.<br><b>문화축제와 팬밋업, 공연 무대를 목소리로 엽니다.</b></p>
+    </header>
+    <div class="feature" id="feature">
+      <a class="feature__frame" href="https://www.youtube.com/watch?v=QqjYxeXxGcE" data-video="QqjYxeXxGcE" target="_blank" rel="noopener" aria-label="종로 어디나 스테이지 개막식 영상 보기">
+        <img src="assets/img/ev-jongno.webp" width="1800" height="1013" alt="광화문광장 세종대왕상 앞 무대와 관객" loading="lazy">
+        <span class="feature__play" aria-hidden="true"><i></i></span>
+      </a>
+      <div class="feature__copy wrap">
+        <p class="mono">광화문광장 · 개막식</p>
+        <h3>종로 어디나 스테이지 개막식 성우 MC</h3>
+        <p>종로구청장이 참석한 음악축제 개막 무대. 광화문광장에서는 서울시가 주관한 2026 서울야외도서관 광화문 책마당의 메인 MC도 맡았습니다.</p>
+        <a class="btn btn--line btn--sm" href="https://www.youtube.com/watch?v=QqjYxeXxGcE" data-video="QqjYxeXxGcE" target="_blank" rel="noopener">개막식 영상 보기<span aria-hidden="true"> ↗</span></a>
+      </div>
+    </div>
+    <div class="posters wrap">
+      <article class="poster" data-genre="게임축제"><p class="poster__g mono">게임축제</p><h3>GXG 2025 판교 게임축제 더빙 시연 성우 MC</h3><p>성남시 주최 · 데일리게임 기사 보도</p></article>
+      <article class="poster" data-genre="팬밋업"><p class="poster__g mono">팬밋업</p><h3>원피스 이모션 팬밋업 &amp; 사인회 MC</h3><p>강수진 · 김승준 · 정미숙 · 김영선 · 김소형 성우 참석</p></article>
+      <article class="poster" data-genre="경연"><p class="poster__g mono">경연대회</p><h3>리보스타 어린이 성우 배틀전 성우 MC</h3><p>KBS 강수진 · 김지혜 · 소연 성우 참석</p></article>
+      <article class="poster" data-genre="도서축제"><p class="poster__g mono">도서축제</p><h3>2026 서울야외도서관 광화문 책마당</h3><p>월간낭만책멍 × 파자마책멍 · 캠핑책멍 · 서울시 주관 광화문광장 메인 MC</p></article>
+      <article class="poster" data-genre="페스티벌"><p class="poster__g mono">페스티벌</p><h3>2026 우리모모콘 NGO빌리지 세이브더칠드런</h3><p>우리금융그룹 회장 참석</p></article>
+      <article class="poster" data-genre="공연"><p class="poster__g mono">공연</p><h3>THE SHOP 더샵 × 조째즈 SUNSET LIVE</h3><p>가수 조째즈 출연</p></article>
+      <article class="poster" data-genre="다문화"><p class="poster__g mono">다문화 축제</p><h3>2026 아프리카 우분투 페스티벌</h3><p>안산문화예술의전당 야외무대</p></article>
+      <article class="poster" data-genre="국악"><p class="poster__g mono">국악</p><h3>국악앙상블 해람 돌씽콘서트</h3><p>콘서트 MC</p></article>
+      <article class="poster" data-genre="클래식"><p class="poster__g mono">클래식</p><h3>신용산 오케스트라 연주회</h3><p>연주회 MC</p></article>
+      <article class="poster" data-genre="오페라"><p class="poster__g mono">오페라</p><h3>영종음악공방 오페라</h3><p>스토리텔러</p></article>
+    </div>
+    <div class="vmc__media wrap">
+      <figure class="pic pic--wide" data-speed="0.92"><img src="assets/img/ev-onepiece.webp" width="1400" height="788" alt="팬밋업 현장을 가득 채운 관객" loading="lazy"><figcaption class="mono">원피스 이모션 팬밋업</figcaption></figure>
+      <figure class="pic pic--tall" data-speed="1.12"><img src="assets/img/ev-sunset.webp" width="1000" height="1333" alt="THE SHOP 더샵 조째즈 선셋 라이브 무대 위의 이샛별" loading="lazy"><figcaption class="mono">더샵 × 조째즈 SUNSET LIVE</figcaption></figure>
+      <figure class="pic pic--sm" data-speed="1.25"><img src="assets/img/ev-gxg.webp" width="800" height="533" alt="부스에서 대본을 들고 더빙을 시연하는 이샛별" loading="lazy"><figcaption class="mono">GXG 더빙 시연 · 사진 데일리게임</figcaption></figure>
+    </div>
+    <p class="press wrap"><span class="mono">PRESS</span><a href="https://www.dailygame.co.kr/view.php?ud=20250919172328710943da15d9d2_26" target="_blank" rel="noopener">데일리게임 · 2025.09.19 — GXG 2025 판교역 광장 성우 부스 기사 속 “성우 이샛별이 더빙을 시연하는 모습” ↗</a></p>
+    <div class="shorts wrap">
+      <a class="reel" href="https://www.youtube.com/watch?v=rJiM7MVma3I" data-video="rJiM7MVma3I" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/rJiM7MVma3I.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">팬밋업</span><span class="reel__t">원피스 이모션 팬밋업 &amp; 팬사인회 오프닝</span></a>
+      <a class="reel" href="https://www.youtube.com/watch?v=zFCeTc388D0" data-video="zFCeTc388D0" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/zFCeTc388D0.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">게임축제</span><span class="reel__t">GXG 2025 축제 더빙 시연 성우 MC</span></a>
+      <a class="reel" href="https://www.youtube.com/watch?v=QqjYxeXxGcE" data-video="QqjYxeXxGcE" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/QqjYxeXxGcE.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">음악축제</span><span class="reel__t">렛츠 종로 어디나 스테이지 개막식</span></a>
+      <a class="reel" href="https://www.youtube.com/watch?v=DzotpkAmM38" data-video="DzotpkAmM38" target="_blank" rel="noopener"><span class="reel__thumb"><img src="assets/img/yt/DzotpkAmM38.webp" width="640" height="360" alt="" loading="lazy"><i class="reel__play" aria-hidden="true"></i></span><span class="reel__k mono">경연대회</span><span class="reel__t">대한민국 어린이 성우 서바이벌 리보스타</span></a>
+    </div>
+  </section>
+</div>
+
+<!-- CUE 09 · GALLERY -->
+<section class="gallery" id="gallery" data-sky="8">
+  <div class="wrap gallery__head">
+    <p class="eyebrow mono"><span data-scramble>CUE 09 · 현장 기록 · ARCHIVE</span></p>
+    <h2 class="h2 split">무대 위의 순간들</h2>
+    <div class="filters mono" role="group" aria-label="현장 사진 분류">
+      <button type="button" class="is-on" data-filter="all">전체</button>
+      <button type="button" data-filter="official">공식 · VIP</button>
+      <button type="button" data-filter="team">팀빌딩 · 레크</button>
+      <button type="button" data-filter="stage">성우MC · 축제</button>
+    </div>
+  </div>
+  <div class="ring" id="ring">
+    <div class="ring__stage"></div>
+    <p class="ring__hint mono" aria-hidden="true">DRAG ← →</p>
+  </div>
+  <p class="ring__cap wrap mono" aria-live="polite"></p>
+</section>
+
+<!-- CUE 10 · REVIEWS -->
+<section class="reviews" id="reviews" data-sky="9">
+  <div class="wrap reviews__grid">
+    <div class="reviews__head">
+      <p class="eyebrow mono"><span data-scramble>CUE 10 · 후기 · REVIEWS</span></p>
+      <h2 class="h2 split">빛나는 행사 후기</h2>
+      <p class="reviews__lead">행사 담당자와 의뢰인이 보내 준 메시지를 그대로 옮겼습니다.</p>
+      <a class="rating" href="https://kmong.com/gig/147949" target="_blank" rel="noopener"><b>4.9</b><span>크몽 평점 · 리뷰 25건 · 거래 37건<small class="mono">2026.10.5 기준 ↗</small></span></a>
+      <p class="reviews__big" data-read>“사회자 목소리가 또박또박, 내용이 잘 들려서 좋았다고.”</p>
+    </div>
+    <div class="chat">
+      <div class="msg msg--me"><p class="msg__who mono">행사 대행사</p><p class="msg__b">어제 함께한 이샛별 MC 어떠셨나요?! 다음 추천을 위해 편히 말씀 주시면 감사하겠습니다 😊</p></div>
+      <div class="msg"><p class="msg__who mono">하남 제일리틀야구단 송년회 담당자</p><p class="msg__b">네 어제 다들 너무 만족하셨습니다. 내년에도 모셨으면 좋겠네요. 감사합니다^^</p></div>
+      <div class="msg"><p class="msg__who mono">삼성 행사 담당자</p><p class="msg__b">어제 행사 호평이 많습니다. 역대 가장 높은 텐션이라며 다들 즐거운 시간이었다고 하네요 ㅎㅎ 아나운서님 덕분입니다. 진심으로 감사합니다 😊</p></div>
+      <div class="msg"><p class="msg__who mono">VIP 투어 행사 관계자</p><p class="msg__b">두 분 다 너무 잘해 주셨어요 :) 특히 삼성 측에서 도슨트를 걱정하셨는데, 삼성 측에서도 잘 진행됐다고 칭찬 주셨습니다 ㅎㅎㅎ</p></div>
+      <div class="msg msg--me"><p class="msg__who mono">행사 대행사</p><p class="msg__b">지난주 행사 진행하시느라 고생 많으셨습니다. 이샛별 아나운서 진행은 어떠셨는지 하고 연락드립니다.</p></div>
+      <div class="msg"><p class="msg__who mono">기관 행사 담당자</p><p class="msg__b">덕분에 지난주 행사 잘 진행되었습니다! 행사 중간에 변동되는 사항이 많아 정신없었는데도, 이샛별 아나운서님께서 침착하게 잘 정리해서 진행 이끌어 주셨습니다. 행사 준비도 꼼꼼하게 잘 해 주셔서 문제없이 행사 잘 마무리할 수 있었습니다.</p></div>
+      <div class="msg"><p class="msg__who mono">국악앙상블 공연 담당자</p><p class="msg__b">오늘 진행 너무너무 좋았구 당일에 변동 사항이 많아 어려움이 있으셨을 텐데 이해해 주셔서 감사합니다^^ 또 좋은 기회로 모셔 다시 만나는 날에는 뒤풀이도 함께해요 😊</p></div>
+      <div class="msg msg--note"><p class="msg__who mono">이취임식 섭외 후기 · 소속사</p><p class="msg__b">아나운서 이샛별님의 깔끔한 진행과, 행사를 진행하시면서 부족한 부분들을 신경 써 주시고 챙겨 주신 모습들이 주최 측 관계자분들께 좋은 모습으로 보여 행사가 끝난 후 직접 좋은 말씀을 통화로 전달해 주셨습니다.</p></div>
+      <div class="msg msg--card"><p class="msg__who mono">결혼식 사회 · ★ 5.0 · 2024.10.01</p><p class="msg__b">예식 전에 연락 주셔서 저희 연애 스토리도 물어봐 주시고, 그걸 녹여서 사회 보실 때 말씀해 주셔서 그 부분이 너무 좋았습니다. 하객분들께서 사회자 목소리가 또박또박 내용이 잘 들려서 좋았다고 좋은 말씀 많이들 해 주셨어요.</p></div>
+      <div class="msg msg--card"><p class="msg__who mono">결혼식 사회 · ★ 5.0 · 2024.10.27</p><p class="msg__b">입장 타이밍 한 번에 맞춰 큐 날려 주시고, 멘트 하나하나가 그냥 쓰이는 흔한 말이 아닌 특징에 맞게 써 주신다는 게 진짜 기가 막혀요. 현장에서가 더 빛을 발하셔요. 똑부러지는 건 일 처리뿐만 아니라 목소리까지였더라구요.</p></div>
+      <div class="msg"><p class="msg__who mono">결혼식 의뢰인</p><p class="msg__b">오늘 사회자님 진행 너무 좋았다고, 주례 없이 멘트만으로 감동이 다가왔다고 아주 좋아하시더라구요. 샛별님 덕분에 잔잔한 유머와 부드러운 진행으로 잘 마무리할 수 있어 감사했습니다 💕</p></div>
+      <div class="msg"><p class="msg__who mono">돌잔치 의뢰인</p><p class="msg__b">오늘 풍성한 돌잔치 할 수 있게 준비 많이 해 주셔서 정말 감사합니다 ❤️ 다들 재밌고 좋았다고 해 주셔서 저희 가족의 첫 행사가 성공적으로 마무리되었네요.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- CUE 11 · PROFILE -->
+<section class="profile" id="profile" data-sky="10">
+  <div class="wrap profile__grid">
+    <figure class="profile__fig" data-tilt>
+      <img src="assets/img/pf-arms.webp" width="900" height="1350" alt="팔짱을 끼고 선 아이보리 수트 차림의 이샛별" loading="lazy">
+      <figcaption class="mono">SEAT BYEOL LEE · ANNOUNCER</figcaption>
+    </figure>
+    <div class="profile__body">
+      <p class="eyebrow mono"><span data-scramble>CUE 11 · 프로필 · PROFILE</span></p>
+      <h2 class="h2 split">이샛별</h2>
+      <div class="cv">
+        <div class="cv__col">
+          <h3 class="cv__h mono">현재</h3>
+          <ul>
+            <li>빛나는MC엔터테인먼트 소속 MC</li>
+            <li>다이렉트 엔터테인먼트 소속 MC</li>
+            <li>퀸즈 엔터테인먼트 소속 MC</li>
+            <li>한국팀빌딩협회 소속 MC</li>
+            <li>기업 · 기관 대상 팀빌딩 및 참여형 교육 강사</li>
+            <li>초중고 성우 스피치 · 진로체험 교육 강사</li>
+            <li>EBS 연계 교육문화 프로그램 강사</li>
+          </ul>
+        </div>
+        <div class="cv__col">
+          <h3 class="cv__h mono">이전</h3>
+          <ul>
+            <li>국가IT전시관 한국어 VIP 도슨트</li>
+            <li>㈜알려줌 영상제작팀 사내 성우 (2016.07–2019.12)</li>
+            <li>㈜애드인컴퍼니 언론사 마케터</li>
+            <li>EK엔터테인먼트 연기 강사 (입시 · 취미)</li>
+            <li>빛나는MC Ent. 입문반 강사</li>
+          </ul>
+        </div>
+        <div class="cv__col">
+          <h3 class="cv__h mono">자격</h3>
+          <ul>
+            <li>중등 정교사 자격증 (연극 · 영화)</li>
+            <li>팀빌딩 액티비티 전문가 1급</li>
+            <li>심리상담사 1급</li>
+            <li>방송스피치 지도사 2급</li>
+            <li>애니메이션 더빙 지도사 2급</li>
+            <li>AI활용교육전문가</li>
+            <li>전문MC 전문과정 수료 (공식 · 레크리에이션)</li>
+          </ul>
+        </div>
+      </div>
+      <p class="skills"><span class="mono">특기</span> 아나운싱 · 성우 · 행사진행 · 레크 · 라디오DJ · 시낭독 · 성대모사 · 전라도 사투리 · 판소리 · 한국무용</p>
+    </div>
+  </div>
+
+  <div class="wrap more">
+    <article class="curtain">
+      <div class="curtain__in">
+        <p class="curtain__k mono">BROADCAST</p>
+        <h3>방송 · 라디오</h3>
+        <ul><li>터치TV '나만의 매력' MC</li><li>법무부 보라미방송 라디오 진행</li><li>심야라디오 'DJ를 부탁해' 2회 진행</li><li>쥬베시스 PDLLA 볼륨크림 화장품 전문가 역</li></ul>
+        <a class="link mono" href="https://www.youtube.com/watch?v=DHMNCs9xtv4" data-video="DHMNCs9xtv4" target="_blank" rel="noopener">터치TV 영상 ↗</a>
+      </div>
+      <i class="curtain__l" aria-hidden="true"></i><i class="curtain__r" aria-hidden="true"></i>
+    </article>
+    <article class="curtain">
+      <div class="curtain__in">
+        <p class="curtain__k mono">TEACHING</p>
+        <h3>스피치 · 성우 강사</h3>
+        <ul><li>초중고 직업체험 '성우수업' 강사 · 서울신구로초, 김포장기초, 인천장서초, 인천청람초 늘봄학교 (2022–2024)</li><li>EBS와 함께하는 &lt;파주놀이구름&gt; 성우와 함께하는 문해력 낭독클래스</li><li>시립마포청소년센터 성우 강사</li><li>EK엔터테인먼트 · YJ 연기학원 스피치 강사</li></ul>
+      </div>
+      <i class="curtain__l" aria-hidden="true"></i><i class="curtain__r" aria-hidden="true"></i>
+    </article>
+    <article class="curtain">
+      <div class="curtain__in">
+        <p class="curtain__k mono">STAGE ACTOR</p>
+        <h3>배우</h3>
+        <ul class="plays"><li>보이체크 <em>마리</em></li><li>시련 <em>아비게일</em></li><li>바냐 아저씨 <em>마리야</em></li><li>벚꽃동산 <em>바랴</em></li><li>12인의 성난 사람들 <em>배심원장</em></li><li>기나긴 크리스마스의 정찬 <em>제네뵈브</em></li><li>굿닥터 <em>부인</em></li><li>마당극 밥 <em>여죄수 · 전라도 사투리</em></li><li>그류?그류! <em>이장댁 · 충청도 사투리</em></li><li>맹진사댁 경사 <em>동네 아이들 대장</em></li></ul>
+        <a class="link mono" href="https://www.youtube.com/watch?v=7sXKPTPvpNA" data-video="7sXKPTPvpNA" target="_blank" rel="noopener">연극 배우 이샛별 ↗</a>
+      </div>
+      <i class="curtain__l" aria-hidden="true"></i><i class="curtain__r" aria-hidden="true"></i>
+    </article>
+  </div>
+
+  <div class="marquee marquee--light" aria-hidden="true">
+    <div class="marquee__row" data-dir="-1"><div class="marquee__track"><span>공식행사</span><i>✦</i><span>기업행사</span><i>✦</i><span>팀빌딩</span><i>✦</i><span>레크리에이션</span><i>✦</i><span>성우</span><i>✦</i><span>배우</span><i>✦</i><span>토크쇼</span><i>✦</i><span>팬미팅</span><i>✦</i><span>야유회</span><i>✦</i><span>워크숍</span><i>✦</i><span>라디오</span><i>✦</i><span>결혼식</span><i>✦</i><span>돌잔치</span><i>✦</i></div></div>
+    <div class="marquee__row marquee__row--sub" data-dir="1"><div class="marquee__track"><span>고용노동부</span><i>·</i><span>행정안전부</span><i>·</i><span>문화체육관광부</span><i>·</i><span>서울특별시</span><i>·</i><span>삼성전자</span><i>·</i><span>삼성인력개발원</span><i>·</i><span>한국과학기술연구원</span><i>·</i><span>한국철도공사</span><i>·</i><span>서울대학교</span><i>·</i><span>넥센타이어</span><i>·</i><span>고양특례시</span><i>·</i><span>우리금융그룹</span><i>·</i><span>세이브더칠드런</span><i>·</i><span>삼성리움미술관</span><i>·</i><span>NAVER</span><i>·</i><span>현대모비스</span><i>·</i></div></div>
+  </div>
+</section>
+
+<!-- CUE 12 · CLOSING -->
+<section class="contact" id="contact" data-sky="11">
+  <div class="wrap contact__grid">
+    <div class="contact__copy">
+      <p class="eyebrow mono"><span data-scramble>CUE 12 · 클로징 · CONTACT</span></p>
+      <h2 class="contact__title"><span class="glow-line">여러분의 행사를</span><span class="glow-line">밝혀드립니다.</span></h2>
+      <p class="contact__lead">행사명, 일시, 장소, 예상 인원, 진행 형태(공식 · VIP · 팀빌딩 · 레크 · 성우MC)를 알려 주시면 행사에 맞는 진행안을 함께 준비합니다.</p>
+      <ul class="contact__list">
+        <li><span class="mono">TEL</span><a href="tel:01039752039" class="contact__v">010-3975-2039</a><button type="button" class="copy mono" data-copy="010-3975-2039">복사</button></li>
+        <li><span class="mono">MAIL</span><a href="mailto:smingvoice_1@naver.com" class="contact__v">smingvoice_1@naver.com</a><button type="button" class="copy mono" data-copy="smingvoice_1@naver.com">복사</button></li>
+        <li><span class="mono">INSTA</span><a href="https://www.instagram.com/68.5fit/" class="contact__v" target="_blank" rel="noopener">@68.5fit</a></li>
+        <li><span class="mono">YOUTUBE</span><a href="https://www.youtube.com/channel/UC5tnF7rfK40ua5MvZp4UO9w/videos" class="contact__v" target="_blank" rel="noopener">이샛별 · 행사 · 성우 영상</a></li>
+        <li><span class="mono">BLOG</span><a href="https://blog.naver.com/voice_685fit" class="contact__v" target="_blank" rel="noopener">배우 · MC · 성우 이샛별</a></li>
+      </ul>
+      <a class="btn btn--solid btn--lg magnetic" href="mailto:smingvoice_1@naver.com?subject=%5B%EC%84%AD%EC%99%B8%20%EB%AC%B8%EC%9D%98%5D%20%ED%96%89%EC%82%AC%EB%AA%85%20%2F%20%EC%9D%BC%EC%8B%9C%20%2F%20%EC%9E%A5%EC%86%8C">섭외 문의 메일 쓰기</a>
+      <p class="contact__hint mono">메일 앱이 열리지 않으면 주소가 자동으로 복사돼요</p>
+    </div>
+    <div class="card3d" id="card3d" role="button" tabindex="0" aria-label="명함 뒤집기">
+      <div class="card3d__in">
+        <div class="card3d__face card3d__front">
+          <svg class="star-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5c.6 6.4 2.6 8.4 9 9-6.4.6-8.4 2.6-9 9-.6-6.4-2.6-8.4-9-9 6.4-.6 8.4-2.6 9-9z"/></svg>
+          <p class="card3d__name">이샛별</p>
+          <p class="card3d__en mono">SEAT BYEOL LEE</p>
+          <p class="card3d__role">전문MC · 성우 · 강사</p>
+          <p class="card3d__flip mono">TAP TO FLIP</p>
+        </div>
+        <div class="card3d__face card3d__back">
+          <img src="assets/img/cut-smile.webp" width="900" height="1842" alt="" loading="lazy">
+          <dl>
+            <dt class="mono">TEL</dt><dd>010-3975-2039</dd>
+            <dt class="mono">MAIL</dt><dd>smingvoice_1@naver.com</dd>
+            <dt class="mono">INSTA</dt><dd>@68.5fit</dd>
+            <dt class="mono">YOUTUBE</dt><dd>이샛별</dd>
+          </dl>
+        </div>
+        <i class="card3d__foil" aria-hidden="true"></i>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot__in">
+    <p class="foot__line">이상으로 모든 순서를 마치겠습니다. 감사합니다.</p>
+    <p class="foot__meta mono">© 2026 이샛별 · SMINGVOICE · 아나운서 · MC · 성우</p>
+  </div>
+</footer>
+
+<div class="mini" id="mini" hidden>
+  <button class="mini__btn" type="button" aria-label="일시정지"><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg></button>
+  <div class="mini__info"><p class="mini__t">목소리 샘플</p><p class="mini__s">VOICE SAMPLE</p></div>
+  <canvas class="mini__eq" width="72" height="28" aria-hidden="true"></canvas>
+  <button class="mini__x" type="button" aria-label="플레이어 닫기"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.4 5 12 10.6 17.6 5 19 6.4 13.4 12 19 17.6 17.6 19 12 13.4 6.4 19 5 17.6 10.6 12 5 6.4z"/></svg></button>
+  <i class="mini__prog" aria-hidden="true"></i>
+</div>
+
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-label="영상">
+  <div class="modal__bg" data-close></div>
+  <div class="modal__box">
+    <button class="modal__x" type="button" data-close aria-label="영상 닫기">×</button>
+    <div class="modal__frame"></div>
+  </div>
+</div>
+
+<div class="preview" aria-hidden="true"><img alt=""></div>
+<div class="toast mono" role="status" aria-live="polite"></div>
+<div class="cursor" aria-hidden="true"><i class="cursor__dot"></i><i class="cursor__ring"><span class="cursor__label mono"></span></i></div>
+<canvas class="sparkle" aria-hidden="true"></canvas>
+
+<script src="assets/js/voice-data.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.15.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.15.0/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.15.0/SplitText.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.15.0/ScrambleTextPlugin.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.min.js"></script>
+<script src="assets/js/sky.js"></script>
+<script src="assets/js/voice.js"></script>
+<script src="assets/js/main.js"></script>
+<!--PAGE-END-->
+</body>
+</html>
