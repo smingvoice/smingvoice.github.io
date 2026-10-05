@@ -733,13 +733,25 @@
     if (!prev || !finePointer || !hasGsap || reduced) return;
     var px = gsap.quickTo(prev, 'x', { duration: .5, ease: 'power3' }), py = gsap.quickTo(prev, 'y', { duration: .5, ease: 'power3' });
     var rot = gsap.quickTo(prev, 'rotation', { duration: .6, ease: 'power3' }), lastX = 0;
+    // One visibility state, one tween at a time. Separate show (.45s) and hide (.3s) tweens used to overlap on a quick pass,
+    // and the show tween outlived the hide, leaving the photo up after the pointer had gone.
+    var shown = false;
+    var setShown = function (on) {
+      if (on === shown) return;
+      shown = on;
+      gsap.to(prev, on ? { opacity: 1, scale: 1, duration: .45, ease: 'back.out(1.6)', overwrite: 'auto' } : { opacity: 0, scale: .6, duration: .3, overwrite: 'auto' });
+    };
+    // mouse only: a touch tap's compatibility mouseenter gets no matching leave until the next tap elsewhere
+    var isMouse = function (e) { return e.pointerType === 'mouse'; };
     $$('[data-preview] li[data-img]').forEach(function (li) {
-      li.addEventListener('mouseenter', function () {
+      li.addEventListener('pointerenter', function (e) {
+        if (!isMouse(e)) return;
         img.src = 'assets/img/' + li.getAttribute('data-img') + '.webp';
-        gsap.to(prev, { opacity: 1, scale: 1, duration: .45, ease: 'back.out(1.6)' });
+        setShown(true);
       });
-      li.addEventListener('mouseleave', function () { gsap.to(prev, { opacity: 0, scale: .6, duration: .3 }); });
-      li.addEventListener('mousemove', function (e) {
+      li.addEventListener('pointerleave', function (e) { if (isMouse(e)) setShown(false); });
+      li.addEventListener('pointermove', function (e) {
+        if (!isMouse(e)) return;
         px(e.clientX + 28); py(e.clientY - 120);
         rot(clamp((e.clientX - lastX) * .8, -12, 12)); lastX = e.clientX;
       });
@@ -1011,14 +1023,28 @@
       });
     });
 
-    ring.addEventListener('pointerdown', function (e) { dragging = true; lastX = e.clientX; vel = 0; ring.setPointerCapture(e.pointerId); });
-    ring.addEventListener('pointermove', function (e) {
-      if (!dragging) return;
-      var dx = e.clientX - lastX; lastX = e.clientX;
-      var d = dx / IW * step * 1.05;
-      spin += d; vel = d;
+    // a card sits at x = -R·sin(angle), so the drag delta is negated to make the ring follow the pointer
+    var lastT = 0, flick = 0, gain = 1.05, pid = null;
+    ring.addEventListener('pointerdown', function (e) {
+      if (e.button > 0) return;
+      dragging = true; pid = e.pointerId; lastX = e.clientX; lastT = performance.now(); vel = 0; flick = 0;
+      gain = e.pointerType === 'mouse' ? 1.05 : 1.6; // a finger covers less distance per card than a mouse
+      try { ring.setPointerCapture(e.pointerId); } catch (err) {}
     });
-    var up = function () { dragging = false; idleAt = performance.now(); };
+    ring.addEventListener('pointermove', function (e) {
+      if (!dragging || e.pointerId !== pid) return;
+      var now = performance.now(), dt = Math.max(1, now - lastT);
+      var dx = e.clientX - lastX; lastX = e.clientX; lastT = now;
+      var d = -dx / IW * step * gain;
+      spin += d;
+      flick = flick * .6 + (d * 16.7 / dt) * .4; // per-frame velocity, smoothed over the last few moves
+    });
+    // release carries the recent velocity; the last tiny touchmove alone used to snap the ring back
+    var up = function () {
+      if (!dragging) return;
+      dragging = false; pid = null; idleAt = performance.now();
+      vel = performance.now() - lastT < 90 ? clamp(flick, -step * .45, step * .45) : 0;
+    };
     ring.addEventListener('pointerup', up);
     ring.addEventListener('pointercancel', up);
     ring.addEventListener('mouseenter', function () { document.dispatchEvent(new CustomEvent('cursorlabel', { detail: 'DRAG' })); });

@@ -547,7 +547,7 @@ section { position: relative; }
 .filters button { padding: .7em 1.15em; border-radius: 999px; border: 1px solid var(--line); color: var(--mist); font-size: .76rem; transition: all .35s; }
 .filters button:hover { color: var(--ivory); border-color: rgba(246, 239, 228, .5); }
 .filters button.is-on { background: var(--ivory); color: var(--ink); border-color: var(--ivory); }
-.ring { position: relative; height: clamp(380px, 52vw, 640px); margin-top: clamp(30px, 5vw, 60px); perspective: 1000px; perspective-origin: 50% 50%; cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.ring { position: relative; height: clamp(380px, 52vw, 640px); margin-top: clamp(30px, 5vw, 60px); perspective: 1000px; perspective-origin: 50% 50%; cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .ring:active { cursor: grabbing; }
 .ring__stage { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; }
 .ring__item { position: absolute; left: 0; top: 0; width: var(--iw, 300px); height: var(--ih, 400px); margin: calc(var(--ih, 400px) / -2) 0 0 calc(var(--iw, 300px) / -2); border-radius: 18px; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; box-shadow: 0 30px 60px -30px rgba(0, 0, 0, .8); background: #1a1440; }
