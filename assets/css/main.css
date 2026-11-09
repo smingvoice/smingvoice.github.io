@@ -540,6 +540,11 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 .poster:nth-child(8) { --pbg: linear-gradient(165deg, #b0513a, #3a1b24); }
 .poster:nth-child(9) { --pbg: linear-gradient(165deg, #3b6fd8, #121c4a); }
 .poster:nth-child(10) { --pbg: linear-gradient(165deg, #8f4bd8, #241246); }
+.poster:nth-child(11) { --pbg: linear-gradient(165deg, #3fa7b5, #123248); }
+.poster:nth-child(12) { --pbg: linear-gradient(165deg, #d6407a, #3b1446); }
+.poster:nth-child(13) { --pbg: linear-gradient(165deg, #5a7be0, #1c1850); }
+.poster:nth-child(14) { --pbg: linear-gradient(165deg, #e0a23a, #4a2a18); }
+.poster:nth-child(15) { --pbg: linear-gradient(165deg, #4fae7a, #123a2c); }
 .vmc__media { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, .65fr) minmax(0, .55fr); gap: clamp(12px, 1.6vw, 22px); margin-top: clamp(60px, 8vw, 110px); align-items: end; }
 .vmc__media .pic--wide { aspect-ratio: 16 / 10; }
 .vmc__media .pic--tall { aspect-ratio: 3 / 4; }

@@ -16,9 +16,9 @@
     { top: '#02031a', bot: '#0a1040', glow: '#2a1f66', ga: .14, stars: 1.15, neb: 1.1, sx: .88, sy: .90, sa: .55, sun: 0 }, // 2 voice
     { top: '#060a28', bot: '#1a2262', glow: '#4a2f80', ga: .30, stars: .90, neb: 1.0, sx: .80, sy: .86, sa: .80, sun: 0 }, // 3 range
     { top: '#050a26', bot: '#142058', glow: '#2e2c6c', ga: .22, stars: 1.00, neb: .75, sx: .84, sy: .88, sa: .85, sun: 0 }, // 4 official
-    { top: '#0a0a28', bot: '#26205a', glow: '#6b4a78', ga: .30, stars: .90, neb: .85, sx: .80, sy: .86, sa: .90, sun: 0 }, // 5 vip
-    { top: '#0e1544', bot: '#33388a', glow: '#7f5cb0', ga: .45, stars: .70, neb: .90, sx: .76, sy: .82, sa: .80, sun: 0 }, // 6 team
-    { top: '#1b1650', bot: '#5c2f7c', glow: '#f2849c', ga: .38, stars: .45, neb: 1.0, sx: .72, sy: .80, sa: .85, sun: 0 }, // 7 voice mc
+    { top: '#0a0a28', bot: '#26205a', glow: '#6b4a78', ga: .30, stars: .90, neb: .85, sx: .80, sy: .86, sa: .90, sun: 0 }, // 5 culture · voice mc
+    { top: '#0e1544', bot: '#33388a', glow: '#7f5cb0', ga: .45, stars: .70, neb: .90, sx: .76, sy: .82, sa: .80, sun: 0 }, // 6 vip
+    { top: '#1b1650', bot: '#5c2f7c', glow: '#f2849c', ga: .38, stars: .45, neb: 1.0, sx: .72, sy: .80, sa: .85, sun: 0 }, // 7 team
     { top: '#251a5c', bot: '#a24a7e', glow: '#ffa08e', ga: .60, stars: .28, neb: .90, sx: .70, sy: .78, sa: .70, sun: 0 }, // 8 gallery
     { top: '#c78da8', bot: '#ffd3b0', glow: '#fff0d8', ga: .50, stars: .02, neb: .25, sx: .70, sy: .80, sa: .25, sun: .15 }, // 9 reviews
     { top: '#f1c1b4', bot: '#fff0de', glow: '#fff7ea', ga: .50, stars: 0, neb: .10, sx: .70, sy: .80, sa: .10, sun: .45 }, // 10 profile
