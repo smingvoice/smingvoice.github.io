@@ -737,7 +737,7 @@
   /* ---------- career ledger: expand + floating photo preview ---------- */
   safe('ledger', function () {
     $$('.ledger').forEach(function (led) {
-      var items = $$('.ledger__list li', led), more = $('.ledger__more', led), KEEP = 8;
+      var items = $$('.ledger__list li', led), more = $('.ledger__more', led), KEEP = more ? 8 : items.length;
       items.forEach(function (li, i) { if (i >= KEEP) li.classList.add('is-extra'); });
       if (hasGsap && !reduced) ScrollTrigger.batch(items.slice(0, KEEP), { start: 'top 92%', once: true, onEnter: function (els) { revealBatch(els, { y: 30, opacity: 0 }, { y: 0, opacity: 1 }, { duration: 1, ease: 'expo.out' }); } });
       if (more) more.addEventListener('click', function () {
@@ -971,14 +971,14 @@
     if (!ring) return;
     var stage = $('.ring__stage', ring), cap = $('.ring__cap');
     var P = {
-      'ev-pilotday': ['2025 도선사의 날 기념식', 'official', '50% 30%'], 'ev-mou': ['고용노동부 & 한국산업인력공단 합동행사', 'official'],
+      'ev-pilotday': ['2025 도선사의 날 기념식', 'official', '50% 30%'], 'ev-mou': ['고용노동부&한국산업인력공단 합동행사', 'official'],
       'ev-neulbom': ['인천광역시교육청 동부거점 늘봄센터 개소식', 'official'], 'ev-smartfarm': ['2025 스마트 농업전문교육 성과공유회', 'official', '50% 45%'],
       'ev-veterans': ['전몰군경유족회 창립기념식', 'official'], 'ev-incheonbook': ['2025 인천독서대전', 'official', '50% 30%'],
       'ev-socialfair': ['제2회 인천광역시 사회적경제 박람회', 'official', '50% 35%'], 'ev-podium': ['기업 역량 혁신 행사 진행', 'official', '50% 30%'],
-      'ev-red': ['공식행사 진행', 'official', '50% 30%'], 'ev-flag': ['공식행사 현장', 'official'], 'ev-vip': ['삼성 스마트비즈엑스포 VIP 투어', 'official'],
-      'ev-vipboard': ['삼성 스마트비즈엑스포 2025', 'official'], 'ev-kintex': ['2024 경기글로벌대전 · 킨텍스', 'official', '50% 30%'],
+      'ev-red': ['공식행사 진행', 'official', '50% 30%'], 'ev-flag': ['공식행사 현장', 'official'], 'ev-vip': ['삼성스마트비즈엑스포 VIP 투어', 'official'],
+      'ev-vipboard': ['삼성스마트비즈엑스포 2025', 'official'], 'ev-kintex': ['2024 경기글로벌대전 · 킨텍스', 'official', '50% 30%'],
       'ev-pilotday2': ['2025 도선사의 날', 'official', '50% 30%'], 'ev-reception': ['2025 도선사의 날 · 행사 준비', 'official'], 'ev-conf': ['컨퍼런스 진행', 'official'],
-      'ev-hall': ['행사장 전경', 'official'], 'ev-football': ['고양시 무원풋볼클럽 고별전', 'official'],
+      'ev-hall': ['행사장 전경', 'official'], 'ev-football': ['고양시무원풋볼클럽 고별전', 'official'],
       'ev-goyang': ['2026 고양시 공직자 워크숍 ICE BREAKING', 'team'], 'ev-ice': ['ICE BREAKING 현장', 'team'],
       'ev-kbiz': ['중소기업협동조합 실무자협의회 워크숍', 'team'], 'ev-teamplay': ['팀빌딩 현장', 'team'], 'ev-everland': ['Over the Wall Outdoor · 2026.03.12', 'team'],
       'ev-teamplanner': ['팀빌딩 액티비티', 'team'], 'ev-teamcert': ['팀빌딩 수료 기념', 'team'], 'ev-teamselfie': ['팀플레이 진행팀', 'team'],
@@ -986,8 +986,8 @@
       'ev-hanam': ['하남 제일리틀야구단 송년의 밤', 'team'], 'ev-banquet': ['기업 송년회 현장', 'team'], 'ev-gym': ['학단 레크 현장', 'team'],
       'ev-camp': ['캠핑장 가족 레크', 'team'], 'ev-wonju': ['원주시 미래경제교육관 어린이경제 플리마켓', 'team'], 'ev-kids': ['어린이 행사 현장', 'team'],
       'ev-moef': ['2026 재정경제부 부모님 감사행사', 'team'],
-      'ev-jongno': ['종로 어디나 스테이지 개막식 · 광화문광장', 'stage'], 'ev-onepiece': ['원피스 이모션 팬밋업', 'stage'],
-      'ev-sunset': ['THE SHOP 더샵 × 조째즈 SUNSET LIVE', 'stage', '50% 30%'], 'ev-gxg': ['2025 GXG 판교 게임축제 더빙 시연 · 사진 데일리게임', 'stage'],
+      'ev-jongno': ['종로 어디나 스테이지 개막식 · 광화문광장', 'stage'], 'ev-onepiece': ['원피스이모션 팬밋업', 'stage'],
+      'ev-sunset': ['THE SHOP 더샵x 조째즈 SUNSET LIVE', 'stage', '50% 30%'], 'ev-gxg': ['2025 GXG 판교 게임축제 더빙시연 · 사진 데일리게임', 'stage'],
       'ev-bora': ['법무부 보라미방송 <12시의 면회>', 'stage'], 'ev-touchtv': ['터치TV 촬영 현장', 'stage'], 'ev-class': ['스피치 · 낭독 수업', 'stage'],
       'ev-socialvalue': ['사회적가치 우수기업 무대', 'stage'], 'ev-seminar': ['세미나 진행', 'stage']
     };

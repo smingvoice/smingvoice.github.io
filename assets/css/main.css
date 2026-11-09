@@ -481,13 +481,12 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 .rec__lead { color: rgba(246, 239, 228, .82); }
 .rec__lead b { color: var(--star); font-weight: 700; }
 .rec__body { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: clamp(24px, 4vw, 56px); margin-top: clamp(32px, 4vw, 56px); align-items: start; }
-.crowd { position: relative; aspect-ratio: 4 / 3; border-radius: 24px; overflow: hidden; background: radial-gradient(ellipse at 50% 120%, rgba(255, 159, 176, .28), transparent 60%), rgba(6, 9, 25, .6); border: 1px solid var(--line); }
+.crowd { position: sticky; top: calc(var(--nav-h) + 74px); aspect-ratio: 4 / 3; border-radius: 24px; overflow: hidden; background: radial-gradient(ellipse at 50% 120%, rgba(255, 159, 176, .28), transparent 60%), rgba(6, 9, 25, .6); border: 1px solid var(--line); }
 .crowd__canvas { width: 100%; height: 100%; display: block; }
 .crowd__count { position: absolute; left: 22px; top: 18px; display: flex; flex-direction: column; }
 .crowd__n { font-family: var(--f-latin); font-weight: 300; font-size: clamp(2.6rem, 5vw, 4.6rem); line-height: 1; font-variation-settings: "opsz" 144; font-variant-numeric: tabular-nums; }
 .crowd__label { color: var(--star); margin-top: .4rem; }
-.rec__list { max-height: 520px; overflow: auto; padding-right: 6px; scrollbar-width: thin; scrollbar-color: rgba(246, 239, 228, .2) transparent; }
-.rec__list li { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: .8rem; align-items: center; padding: .75rem .6rem; border-bottom: 1px solid var(--line); cursor: pointer; border-radius: 8px; position: relative; isolation: isolate; transition: background .3s; }
+.rec__list li { display: grid; grid-template-columns: 92px minmax(0, 1fr) auto; gap: .8rem; align-items: center; padding: .75rem .6rem; border-bottom: 1px solid var(--line); cursor: pointer; border-radius: 8px; position: relative; isolation: isolate; transition: background .3s; }
 .rec__list li::after { content: ""; position: absolute; left: 0; bottom: -1px; height: 2px; width: calc(var(--p, 0) * 100%); background: linear-gradient(90deg, var(--star), var(--dawn)); opacity: .6; }
 .rec__list li:hover, .rec__list li.is-on { background: rgba(255, 255, 255, .06); }
 .rec__list li.is-on .n { color: var(--star); }
