@@ -29,6 +29,7 @@
 </head>
 <body>
 <!--PAGE-START-->
+<script>document.documentElement.classList.add('js')</script>
 <canvas id="sky" aria-hidden="true"></canvas>
 <div class="grain" aria-hidden="true"></div>
 
@@ -63,7 +64,7 @@
   </div>
 </header>
 
-<div class="menu" id="menu" hidden>
+<div class="menu" id="menu" data-lenis-prevent hidden>
   <nav class="menu__links" aria-label="전체 메뉴">
     <a href="#about"><small class="mono">02</small>인사말</a>
     <a href="#voice"><small class="mono">03</small>목소리</a>
@@ -489,7 +490,7 @@
           <canvas class="crowd__canvas" aria-hidden="true"></canvas>
           <p class="crowd__count"><b class="crowd__n">4,800</b><span class="crowd__label mono">16 EVENTS · TOTAL</span></p>
         </div>
-        <ul class="rec__list">
+        <ul class="rec__list" data-lenis-prevent>
           <li data-n="1200"><span class="t mono">학단레크</span><span class="n">서울잠원초 늘봄학교</span><span class="c">1,200명</span></li>
           <li data-n="1000"><span class="t mono">학단레크</span><span class="n">서울묘곡초 늘봄학교</span><span class="c">1,000명</span></li>
           <li data-n="500"><span class="t mono">단체레크</span><span class="n">오징어게임 옥정 e-편한</span><span class="c">500명</span></li>

@@ -43,7 +43,6 @@
   try {
     gl = canvas.getContext('webgl', { antialias: false, alpha: false, depth: false, stencil: false, premultipliedAlpha: false, powerPreference: 'high-performance' });
   } catch (e) { gl = null; }
-  if (!gl) { document.documentElement.classList.add('no-webgl'); return; }
 
   var VS = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
   var FS = [
@@ -111,22 +110,25 @@
     if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) { console.warn('[sky]', gl.getShaderInfoLog(s)); return null; }
     return s;
   }
-  var vs = sh(gl.VERTEX_SHADER, VS), fs = sh(gl.FRAGMENT_SHADER, FS);
-  if (!vs || !fs) return;
-  var prog = gl.createProgram();
-  gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog);
-  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { console.warn('[sky] link', gl.getProgramInfoLog(prog)); return; }
-  gl.useProgram(prog);
-  var buf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-  var loc = gl.getAttribLocation(prog, 'p');
-  gl.enableVertexAttribArray(loc);
-  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-
+  // builds the program; runs again when a lost context comes back, since every GL object dies with the context
   var U = {};
-  ['uRes', 'uTime', 'uMouse', 'uScroll', 'uTop', 'uBot', 'uGlow', 'uGlowAmt', 'uStars', 'uNebula', 'uStarPos', 'uStarAmt', 'uAudio', 'uSun', 'uTension']
-    .forEach(function (k) { U[k] = gl.getUniformLocation(prog, k); });
+  function setup() {
+    var vs = sh(gl.VERTEX_SHADER, VS), fs = sh(gl.FRAGMENT_SHADER, FS);
+    if (!vs || !fs) return false;
+    var prog = gl.createProgram();
+    gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { console.warn('[sky] link', gl.getProgramInfoLog(prog)); return false; }
+    gl.useProgram(prog);
+    var buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    var loc = gl.getAttribLocation(prog, 'p');
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    ['uRes', 'uTime', 'uMouse', 'uScroll', 'uTop', 'uBot', 'uGlow', 'uGlowAmt', 'uStars', 'uNebula', 'uStarPos', 'uStarAmt', 'uAudio', 'uSun', 'uTension']
+      .forEach(function (k) { U[k] = gl.getUniformLocation(prog, k); });
+    return true;
+  }
 
   // current (smoothed) and target palette state
   var lerp = function (a, b, t) { return a + (b - a) * t; };
@@ -143,9 +145,10 @@
     if (mobile && i === 0 && t < .5) { tgt.sx = .26; tgt.sy = .9; }
   };
 
-  var quality = mobile ? .55 : .72;
+  var quality = mobile ? .55 : .72, live = false;
   var W = 0, H = 0, lastCssW = 0, lastCssH = 0;
   function resize(force) {
+    if (!live) return;
     var cw = canvas.clientWidth || window.innerWidth, ch = canvas.clientHeight || window.innerHeight;
     if (!force && Math.abs(cw - lastCssW) < 2 && Math.abs(ch - lastCssH) < 140) return;
     lastCssW = cw; lastCssH = ch;
@@ -155,7 +158,29 @@
     canvas.width = W; canvas.height = H;
     gl.viewport(0, 0, W, H);
   }
-  resize(true);
+
+  // The light sections (reviews, profile, contact) use plum text because the sky turns to dawn behind them. With no
+  // drawing context the dark #sky background stayed put and that text fell to about 1.1:1 contrast. So whenever the
+  // shader can't draw, the same smoothed palette is painted as gradients on the canvas element's own background.
+  var painted = '';
+  var rgba = function (c, a) { return 'rgba(' + Math.round(c[0] * 255) + ',' + Math.round(c[1] * 255) + ',' + Math.round(c[2] * 255) + ',' + a + ')'; };
+  function paintCss() {
+    var glow = Math.min(1, cur.ga + cur.sun * .4).toFixed(2);
+    var bg = 'radial-gradient(130% 70% at 50% 100%,' + rgba(cur.glow, glow) + ',' + rgba(cur.glow, 0) + '),linear-gradient(' + rgba(cur.top, 1) + ',' + rgba(cur.bot, 1) + ')';
+    if (bg !== painted) { painted = bg; canvas.style.background = bg; }
+  }
+  function useGl(on) {
+    live = on; api.ok = on;
+    document.documentElement.classList.toggle('no-webgl', !on);
+    if (on) resize(true); else paintCss();
+  }
+  // every failure lands in the fallback: no context, a program that won't build, or a context lost later on
+  if (gl) {
+    // preventDefault is what allows the browser to restore the context at all
+    canvas.addEventListener('webglcontextlost', function (e) { e.preventDefault(); useGl(false); });
+    canvas.addEventListener('webglcontextrestored', function () { if (setup()) useGl(true); });
+  }
+  useGl(!!gl && setup());
   window.addEventListener('resize', function () { resize(false); });
 
   var mouse = [0, 0], mT = [0, 0];
@@ -169,6 +194,11 @@
     requestAnimationFrame(frame);
     if (document.hidden) return;
     var dt = Math.min(64, now - lastNow); lastNow = now;
+    var k = 1 - Math.pow(.92, dt / 16.7);
+    cur.top = mix3(cur.top, tgt.top, k); cur.bot = mix3(cur.bot, tgt.bot, k); cur.glow = mix3(cur.glow, tgt.glow, k);
+    cur.ga = lerp(cur.ga, tgt.ga, k); cur.stars = lerp(cur.stars, tgt.stars, k); cur.neb = lerp(cur.neb, tgt.neb, k);
+    cur.sx = lerp(cur.sx, tgt.sx, k * .6); cur.sy = lerp(cur.sy, tgt.sy, k * .6); cur.sa = lerp(cur.sa, tgt.sa, k); cur.sun = lerp(cur.sun, tgt.sun, k);
+    if (!live) { paintCss(); return; }
     // adaptive resolution: drop quality when frames run long
     acc += dt; frames++;
     if (frames === 90) {
@@ -177,10 +207,6 @@
       else if (avg < 14 && quality < (mobile ? .6 : .82)) { quality = Math.min(mobile ? .6 : .82, quality + .06); resize(true); }
       frames = 0; acc = 0;
     }
-    var k = 1 - Math.pow(.92, dt / 16.7);
-    cur.top = mix3(cur.top, tgt.top, k); cur.bot = mix3(cur.bot, tgt.bot, k); cur.glow = mix3(cur.glow, tgt.glow, k);
-    cur.ga = lerp(cur.ga, tgt.ga, k); cur.stars = lerp(cur.stars, tgt.stars, k); cur.neb = lerp(cur.neb, tgt.neb, k);
-    cur.sx = lerp(cur.sx, tgt.sx, k * .6); cur.sy = lerp(cur.sy, tgt.sy, k * .6); cur.sa = lerp(cur.sa, tgt.sa, k); cur.sun = lerp(cur.sun, tgt.sun, k);
     mouse[0] = lerp(mouse[0], mT[0], .05); mouse[1] = lerp(mouse[1], mT[1], .05);
     audioS = lerp(audioS, api.audio || 0, .35);
     tensionS = lerp(tensionS, api.tension || 0, .1);
@@ -195,6 +221,5 @@
     gl.uniform1f(U.uAudio, audioS); gl.uniform1f(U.uSun, cur.sun); gl.uniform1f(U.uTension, tensionS);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
-  api.ok = true;
   requestAnimationFrame(frame);
 })();

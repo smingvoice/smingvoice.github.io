@@ -408,16 +408,32 @@
   safe('marquee', function () {
     $$('.marquee__row').forEach(function (row) {
       var track = row.querySelector('.marquee__track');
-      var w = track.offsetWidth || 800, need = Math.ceil(window.innerWidth * 2 / w) + 1;
-      for (var i = 0; i < need; i++) row.appendChild(track.cloneNode(true));
-      var dir = +row.getAttribute('data-dir') || 1, base = row.classList.contains('marquee__row--sub') ? .45 : .8, x = 0, on = true, sk = 0;
-      visible(row, function (v) { on = v; });
+      var dir = +row.getAttribute('data-dir') || 1, base = row.classList.contains('marquee__row--sub') ? .45 : .8, x = 0, on = true, sk = 0, w = 800;
+      // keep x in (-w, 0] whatever the step size; a single `if` let a fast scroll carry it out of range
+      var wrap = function (v) { return ((v % w) - w) % w; };
+      // the track width follows vw-based font sizes and web fonts, so measure again instead of trusting the first read
+      var measure = function () {
+        w = track.offsetWidth || w;
+        var need = Math.ceil(window.innerWidth * 2 / w) + 1;
+        for (var i = row.children.length - 1; i < need; i++) row.appendChild(track.cloneNode(true));
+        x = wrap(x);
+      };
+      measure();
+      var queued = false;
+      window.addEventListener('resize', function () {
+        if (queued) return;
+        queued = true;
+        requestAnimationFrame(function () { queued = false; measure(); });
+      });
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+      // watch the static .marquee box, not the row: the row is the thing being translated, and once it slid a
+      // viewport-width left its own box sat wholly inside the parent's overflow clip, read as hidden, and froze for good
+      visible(row.parentNode, function (v) { on = v; });
       if (reduced) return;
       onTick(function () {
         if (!on) return;
-        var v = velocity();
-        x -= (base + Math.abs(v) * .12) * dir * (v < -0.5 ? -1 : 1);
-        if (x < -w) x += w; if (x > 0) x -= w;
+        var v = clamp(velocity(), -60, 60);
+        x = wrap(x - (base + Math.abs(v) * .12) * dir * (v < -0.5 ? -1 : 1));
         sk = lerp(sk, clamp(-v * .35, -9, 9), .12);
         row.style.transform = 'translate3d(' + x.toFixed(2) + 'px,0,0) skewX(' + sk.toFixed(2) + 'deg)';
       });
@@ -454,8 +470,10 @@
       gsap.fromTo(img, { scale: 1.35 }, { scale: 1, duration: 2.2, ease: 'expo.out', scrollTrigger: { trigger: pic, start: 'top 90%', once: true } });
       var sp = parseFloat(pic.getAttribute('data-speed') || '1');
       if (sp !== 1) {
-        var amt = (1 - sp) * (mobileQ.matches ? 80 : 220);
-        gsap.fromTo(pic, { y: -amt }, { y: amt, ease: 'none', scrollTrigger: { trigger: pic, start: 'top bottom', end: 'bottom top', scrub: true } });
+        // read the breakpoint on every refresh: a value fixed at load kept the phone-sized travel after rotating to
+        // landscape, and the reveal triggers on the same .pic were then measured off that wrong offset
+        var amt = function () { return (1 - sp) * (mobileQ.matches ? 80 : 220); };
+        gsap.fromTo(pic, { y: function () { return -amt(); } }, { y: amt, ease: 'none', scrollTrigger: { trigger: pic, start: 'top bottom', end: 'bottom top', scrub: true, invalidateOnRefresh: true } });
       }
     });
     // cards and lists
@@ -629,8 +647,10 @@
     if (hasGsap && !reduced) {
       var mm = gsap.matchMedia();
       mm.add('(min-width: 901px)', function () {
+        // matchMedia rebuilds this pin after a 900px crossing and the new one lands at the end of ScrollTrigger's list;
+        // refreshPriority makes every refresh sort it ahead, so triggers below it are measured with its 140% spacer in place
         ScrollTrigger.create({
-          trigger: $('.range__pin', sec), start: 'top top', end: '+=140%', pin: true, scrub: true, anticipatePin: 1,
+          trigger: $('.range__pin', sec), start: 'top top', end: '+=140%', pin: true, scrub: true, anticipatePin: 1, refreshPriority: 1,
           onUpdate: function (st) { if (!dragging) target = st.progress; }
         });
       });
@@ -997,7 +1017,8 @@
       stage.innerHTML = '';
       items = keys.map(function (k) {
         var d = document.createElement('div'); d.className = 'ring__item';
-        var im = document.createElement('img'); im.src = 'assets/img/' + k + '.webp'; im.alt = P[k][0]; im.loading = 'lazy'; im.draggable = false;
+        // loading must be set before src: assigning src first starts an eager fetch
+        var im = document.createElement('img'); im.loading = 'lazy'; im.src = 'assets/img/' + k + '.webp'; im.alt = P[k][0]; im.draggable = false;
         if (P[k][2]) im.style.objectPosition = P[k][2];
         d.appendChild(im); stage.appendChild(d);
         return { el: d, key: k };

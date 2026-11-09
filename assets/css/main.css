@@ -31,7 +31,6 @@
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 html.lenis, html.lenis body { height: auto; }
-.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
 .lenis.lenis-stopped { overflow: clip; }
 body {
   margin: 0;
@@ -105,6 +104,11 @@ section { position: relative; }
 
 /* ---------- intro ---------- */
 .intro { position: fixed; inset: 0; z-index: 200; background: #04061a; display: grid; place-items: center; color: var(--ivory); clip-path: circle(150% at 50% 50%); }
+/* only main.js dismisses the intro, so it must not depend on main.js to get out of the way: without JS it never
+   shows, and if main.js never takes it over (`is-intro`), e.g. a failed load or an early error, it hides after 12s */
+html:not(.js) .intro { display: none; }
+html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
+@keyframes intro-failsafe { to { visibility: hidden; } }
 .intro__canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .intro__top { position: absolute; top: calc(22px + env(safe-area-inset-top, 0px)); left: var(--gutter); right: var(--gutter); display: flex; justify-content: space-between; color: var(--mist); }
 .intro__status { color: var(--star); animation: blink 1s steps(2) infinite; }
@@ -159,11 +163,13 @@ section { position: relative; }
 .nav__menu[aria-expanded="true"] span:first-child { top: 21px; transform: rotate(45deg); }
 .nav__menu[aria-expanded="true"] span:last-child { top: 21px; transform: rotate(-45deg); }
 
-.menu { position: fixed; inset: 0; z-index: 55; background: rgba(6, 9, 25, .96); backdrop-filter: blur(10px); display: flex; flex-direction: column; justify-content: center; padding: calc(var(--nav-h) + 20px) var(--gutter) 40px; clip-path: circle(0 at calc(100% - 44px) 34px); }
-.menu__links { display: grid; gap: .2rem; }
+/* centred with auto margins rather than justify-content: when the list is taller than the screen (phones held sideways)
+   the margins collapse to 0 and the menu scrolls from its top, where centring pushed both ends out of reach */
+.menu { position: fixed; inset: 0; z-index: 55; background: rgba(6, 9, 25, .96); backdrop-filter: blur(10px); display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; padding: calc(var(--nav-h) + 20px) var(--gutter) 40px; clip-path: circle(0 at calc(100% - 44px) 34px); }
+.menu__links { display: grid; gap: .2rem; margin-top: auto; }
 .menu__links a { display: flex; align-items: baseline; gap: 1rem; font-family: var(--f-display); font-weight: 600; font-size: clamp(1.7rem, 7vw, 2.6rem); line-height: 1.35; letter-spacing: -.03em; }
 .menu__links small { color: var(--star); font-size: .7rem; }
-.menu__foot { color: var(--mist); margin-top: 2.4rem; }
+.menu__foot { color: var(--mist); margin-top: 2.4rem; margin-bottom: auto; }
 
 /* ---------- cue sheet rail ---------- */
 .cues { position: fixed; right: 10px; top: 50%; transform: translateY(-50%); z-index: 40; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; pointer-events: none; transition: color .4s, opacity .4s; }
