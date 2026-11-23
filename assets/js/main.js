@@ -1476,6 +1476,9 @@
     var shut = [];
     var setInert = function (on) {
       if (on) {
+        // once only: a second open while open found everything already inert, recorded nothing, and closing then left
+        // the whole page inert
+        if (shut.length) return;
         shut = Array.prototype.filter.call(document.body.children, function (el) { return el !== modal && el.tagName !== 'SCRIPT' && !el.inert; });
         shut.forEach(function (el) { el.inert = true; });
       } else { shut.forEach(function (el) { el.inert = false; }); shut = []; }

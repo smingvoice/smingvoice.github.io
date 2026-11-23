@@ -732,7 +732,10 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 .mini__prog { position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; transform-origin: left; transform: scaleX(0); background: linear-gradient(90deg, var(--star), var(--dawn)); }
 .modal { position: fixed; inset: 0; z-index: 150; display: grid; place-items: center; align-content: center; gap: 14px; padding: var(--gutter); }
 .modal__bg { position: absolute; inset: 0; background: rgba(4, 6, 20, .86); backdrop-filter: blur(8px); }
-.modal__box { position: relative; width: min(1100px, 100%); aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; background: #000; box-shadow: 0 40px 120px rgba(0, 0, 0, .8); }
+/* The video is as wide as the screen allows, but never taller than what the screen leaves beside the link below it.
+   Sized by width alone, on short screens (a phone on its side, a low laptop window) it pushed the close button off the
+   top and the link up over the video. 100vh first for browsers without svh. */
+.modal__box { position: relative; width: min(1100px, 100%, calc((100vh - 2 * var(--gutter) - 14px - 2.4rem) * 16 / 9)); width: min(1100px, 100%, calc((100svh - 2 * var(--gutter) - 14px - 2.4rem) * 16 / 9)); aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; background: #000; box-shadow: 0 40px 120px rgba(0, 0, 0, .8); }
 /* the dialog's last stop: Tab from it goes back to the close button (main.js), and it opens the same video on YouTube */
 .modal__out { position: relative; z-index: 1; color: var(--ivory); font-size: .72rem; letter-spacing: .08em; padding: .5em 1em; border-radius: 999px; background: rgba(255, 255, 255, .08); }
 .modal__out:hover, .modal__out:focus-visible { background: rgba(255, 255, 255, .16); }
