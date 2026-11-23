@@ -619,11 +619,12 @@
       { m: 'MODE 04 · 레크', t: '현장을 뒤집는 레크리에이션', d: '1,200명 앞에서도 흔들리지 않는 에너지. 웃음과 함성으로 현장을 가득 채웁니다.', w: 'Bright!', v: '레크' }
     ];
     var val = 0, target = 0, dragging = false, mode = -1, on = false, drawn = -1;
-    var cv = $('.range__wave', sec), g = cv.getContext('2d'), W = 0, H = 0, dpr = 1, fw = 0;
-    // fw: the fader's width, so the knob can move by transform (compositor only) instead of re-laying out `left` every frame
+    var cv = $('.range__wave', sec), g = cv.getContext('2d'), W = 0, H = 0, dpr = 1, tw = 0, track = $('.fader__track', sec);
+    // tw: the track's width, the knob's full travel (it starts on the track's left end). The knob moves by transform,
+    // compositor only, instead of re-laying out `left` every frame.
     var size = function () {
       var r = cv.getBoundingClientRect(); dpr = Math.min(devicePixelRatio || 1, 2); W = r.width; H = r.height; cv.width = W * dpr; cv.height = H * dpr;
-      fw = fader.clientWidth; drawn = -1;
+      tw = track.clientWidth; drawn = -1;
     };
     size(); window.addEventListener('resize', size);
     visible(sec, function (v) { on = v; if (!v) Sky.tension = 0; });
@@ -687,7 +688,7 @@
       val += (target - val) * .12;
       if (Math.abs(val - drawn) > .0004) {
         drawn = val;
-        knob.style.transform = 'translateX(' + (val * fw).toFixed(1) + 'px)';
+        knob.style.transform = 'translateX(' + (val * tw).toFixed(1) + 'px)';
         fill.style.transform = 'scaleX(' + val.toFixed(4) + ')';
         fader.setAttribute('aria-valuenow', String(Math.round(val * 100)));
         var tone = Math.round(96 - val * 70), energy = Math.round(12 + val * 86), tempo = Math.round(72 + val * 60);
