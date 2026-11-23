@@ -81,11 +81,16 @@
     if (lenis) lenis.scrollTo(el, { offset: el.id === 'top' ? 0 : -8, duration: 1.6, easing: function (t) { return 1 - Math.pow(1 - t, 4); }, onComplete: landed });
     else { el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }); setTimeout(landed, reduced ? 0 : 1600); }
   };
-  ['wheel', 'touchstart'].forEach(function (t) { window.addEventListener(t, function () { heading = null; reaim = false; }, { passive: true, capture: true }); });
+  // A jump is forgotten once the visitor takes over (wheel, touch, a scroll key) or an overlay stops the scroll; one cut
+  // short by the menu opening used to stay remembered and pulled the page back on the next width change.
+  var forget = function () { heading = null; reaim = false; };
+  ['wheel', 'touchstart'].forEach(function (t) { window.addEventListener(t, forget, { passive: true, capture: true }); });
+  window.addEventListener('keydown', function (e) { if (/^(PageDown|PageUp|ArrowDown|ArrowUp|Home|End| )$/.test(e.key)) forget(); }, true);
 
   // Overlays (menu, video) hold the page behind them still. Lenis does that while it runs. Under reduced motion it is
   // off, so the document itself is locked instead; until now the page behind kept scrolling.
   var lockScroll = function (on) {
+    if (on) forget();
     if (lenis) { if (on) lenis.stop(); else lenis.start(); }
     root.classList.toggle('is-locked', on && !lenis);
   };
@@ -165,12 +170,15 @@
     nav.addEventListener('focusout', function (e) { if (!e.relatedTarget || !nav.contains(e.relatedTarget)) hold = false; });
     var letGo = function () { hold = false; };
     ['wheel', 'touchstart', 'pointerdown'].forEach(function (t) { window.addEventListener(t, letGo, { passive: true, capture: true }); });
-    // A key pressed while focus sits on a link the hidden header took off screen first brings the header back. Enter
-    // or Space then waits for the next press, instead of following a link nobody can see.
+    // Keyboard focus on a link or button the hidden header took off screen: Tab brings the header back, and Enter (or
+    // Space on a button) first brings it back and waits for the next press, instead of following what nobody can see.
+    // Focus that a click left behind is not keyboard focus: there every key does what it always does (Space scrolls)
+    // and the header hides as usual. Treating that focus the same kept the header down and ate the first Space.
     nav.addEventListener('keydown', function (e) {
-      if (!hidden || e.key === 'Shift' || e.key === 'Tab') { if (e.key === 'Tab') setHidden(false); return; }
-      hold = true; setHidden(false);
-      if (e.key === 'Enter' || e.key === ' ') e.preventDefault();
+      var a = document.activeElement;
+      if (!hidden || !a || !keyFocus(a)) return;
+      if (e.key === 'Tab') { setHidden(false); return; }
+      if (e.key === 'Enter' || (e.key === ' ' && a.tagName === 'BUTTON')) { e.preventDefault(); hold = true; setHidden(false); }
     });
     onTick(function () {
       var y = window.scrollY;
@@ -800,7 +808,10 @@
         end: function () { return mobileQ.matches ? '+=0' : '+=140%'; },
         pin: true, scrub: true, anticipatePin: 1, refreshPriority: 1, invalidateOnRefresh: true,
         onUpdate: function (st) { prog = st.progress; if (!dragging && !mobileQ.matches) target = clamp(follow(prog), 0, 1); },
-        onLeave: function () { v0 = null; if (!dragging) target = 1; }, onLeaveBack: function () { v0 = null; if (!dragging) target = 0; }
+        // only a visitor scrolling out finishes the run; a refresh that moves the pin (a window narrowed to phone width
+        // pushes its start past the page) used to send the value back to 0
+        onLeave: function () { v0 = null; if (!dragging && !ScrollTrigger.isRefreshing && !mobileQ.matches) target = 1; },
+        onLeaveBack: function () { v0 = null; if (!dragging && !ScrollTrigger.isRefreshing && !mobileQ.matches) target = 0; }
       });
       // phones: no scroll travel to drive the fader, so it shows its range once by itself
       var demo = { v: 0 };
@@ -1453,10 +1464,26 @@
   safe('video', function () {
     var modal = $('#modal');
     if (!modal || isArtifact) return;
-    var frame = $('.modal__frame', modal), lastFocus = null;
+    var frame = $('.modal__frame', modal), lastFocus = null, xBtn = $('.modal__x', modal), out = $('.modal__out', modal);
+    // Keeping focus in the dialog:
+    // - Everything else on the page is inert while it is open, so neither Tab nor a screen reader reaches the page
+    //   behind it.
+    // - Its stops are the close button, the video and the "YouTube에서 보기" link. The button and the link carry
+    //   tabindex="0" because WebKit's default Tab skips plain buttons and links. Tab from the link and Shift+Tab from
+    //   the button wrap round to the other end; Tab out of the cross-origin frame lands on the link by itself.
+    // - The focus stops used before failed one way or another: hidden ones broke the aria-hidden-focus rule, and button
+    //   ones were skipped by WebKit's Tab and read as three close buttons.
+    var shut = [];
+    var setInert = function (on) {
+      if (on) {
+        shut = Array.prototype.filter.call(document.body.children, function (el) { return el !== modal && el.tagName !== 'SCRIPT' && !el.inert; });
+        shut.forEach(function (el) { el.inert = true; });
+      } else { shut.forEach(function (el) { el.inert = false; }); shut = []; }
+    };
     var close = function () {
       if (modal.hidden) return;
       frame.innerHTML = '';
+      setInert(false);
       modal.hidden = true;
       lockScroll(false);
       lastFocus && lastFocus.focus();
@@ -1473,7 +1500,9 @@
         f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
         f.title = '유튜브 영상';
         frame.innerHTML = ''; frame.appendChild(f);
+        if (out) out.href = 'https://www.youtube.com/watch?v=' + encodeURIComponent(a.getAttribute('data-video'));
         modal.hidden = false;
+        setInert(true);
         lockScroll(true);
         if (hasGsap && !reduced) gsap.fromTo('.modal__box', { scale: .85, opacity: 0, y: 30 }, { scale: 1, opacity: 1, y: 0, duration: .7, ease: 'expo.out' });
         $('.modal__x', modal).focus();
@@ -1482,23 +1511,11 @@
       if (e.target.closest('[data-close]')) close();
     });
     document.addEventListener('keydown', function (e) { if (!modal.hidden && e.key === 'Escape') close(); });
-    // aria-modal promises the page behind is out of reach, so Tab stays inside the dialog. Tabbing out of the YouTube
-    // frame happens in a cross-origin document this page cannot listen to (and a frame still loading is skipped), so
-    // two empty focus stops at the dialog's edges send focus back to the close button instead of to the page behind.
-    // Both go to the button, never into the frame: keys pressed inside the frame never reach this page, so Esc would
-    // stop closing the dialog. Tab from the button still enters the video.
-    var box = $('.modal__box', modal), xBtn = $('.modal__x', modal);
-    // Each stop is a real close button, visible to screen readers only, so nothing focusable is hidden from them (a
-    // focusable aria-hidden span fails the aria-hidden-focus rule, and an empty one read as an unnamed item). Focus
-    // landing on it moves to the visible close button; pressing it closes the dialog too.
-    var stop = function () {
-      var s = document.createElement('button'); s.type = 'button'; s.className = 'sr-only'; s.textContent = '영상 닫기';
-      s.addEventListener('focus', function () { xBtn.focus(); });
-      s.addEventListener('click', close);
-      return s;
-    };
-    box.insertBefore(stop(), box.firstChild);
-    box.appendChild(stop());
+    modal.addEventListener('keydown', function (e) {
+      if (e.key !== 'Tab' || !out) return;
+      if (!e.shiftKey && document.activeElement === out) { e.preventDefault(); xBtn.focus(); }
+      else if (e.shiftKey && document.activeElement === xBtn) { e.preventDefault(); out.focus(); }
+    });
   });
 
   /* ---------- tilt on portraits ---------- */

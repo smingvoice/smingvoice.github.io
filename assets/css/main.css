@@ -730,9 +730,12 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 .mini__s { color: var(--mist); font-size: .74rem; line-height: 1.35; }
 .mini__eq { width: 72px; height: 28px; flex-shrink: 0; }
 .mini__prog { position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; transform-origin: left; transform: scaleX(0); background: linear-gradient(90deg, var(--star), var(--dawn)); }
-.modal { position: fixed; inset: 0; z-index: 150; display: grid; place-items: center; padding: var(--gutter); }
+.modal { position: fixed; inset: 0; z-index: 150; display: grid; place-items: center; align-content: center; gap: 14px; padding: var(--gutter); }
 .modal__bg { position: absolute; inset: 0; background: rgba(4, 6, 20, .86); backdrop-filter: blur(8px); }
 .modal__box { position: relative; width: min(1100px, 100%); aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; background: #000; box-shadow: 0 40px 120px rgba(0, 0, 0, .8); }
+/* the dialog's last stop: Tab from it goes back to the close button (main.js), and it opens the same video on YouTube */
+.modal__out { position: relative; z-index: 1; color: var(--ivory); font-size: .72rem; letter-spacing: .08em; padding: .5em 1em; border-radius: 999px; background: rgba(255, 255, 255, .08); }
+.modal__out:hover, .modal__out:focus-visible { background: rgba(255, 255, 255, .16); }
 .modal__frame, .modal__frame iframe { width: 100%; height: 100%; border: 0; display: block; }
 .modal__x { position: absolute; top: 10px; right: 10px; z-index: 2; width: 42px; height: 42px; border-radius: 50%; background: rgba(0, 0, 0, .6); color: #fff; font-size: 1.5rem; line-height: 1; }
 .preview { position: fixed; left: 0; top: 0; z-index: 45; width: 260px; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; pointer-events: none; opacity: 0; transform: scale(.6); box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .8); }
