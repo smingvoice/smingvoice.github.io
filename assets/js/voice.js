@@ -3,6 +3,7 @@
   'use strict';
 
   var samples = window.VOICE_SAMPLES || [];
+  var reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   var CATS = {
     ad: { ko: '광고', en: 'COMMERCIAL', color: '#ffd27a' },
     char: { ko: '캐릭터 · 게임 · 더빙', en: 'CHARACTER', color: '#ff8fab' },
@@ -65,8 +66,10 @@
     if (audio.paused) play(current || s || samples[0]); else pause();
   }
   function step(dir) {
-    var i = current ? samples.indexOf(current) : -1;
-    play(samples[(i + dir + samples.length) % samples.length]);
+    // From nothing, or from the greeting (not in the list), "next" starts at the first sample and "prev" at the last.
+    // The -1 index used to step "prev" to the second-to-last.
+    var n = samples.length, i = current ? samples.indexOf(current) : -1;
+    play(samples[i === -1 ? (dir > 0 ? 0 : n - 1) : (i + dir + n) % n]);
   }
   ['play', 'pause', 'ended', 'timeupdate'].forEach(function (ev) {
     audio.addEventListener(ev, function () { emit(ev === 'timeupdate' ? 'time' : ev); });
@@ -254,12 +257,13 @@
     var t0 = performance.now();
     chartApi.draw = function (now) {
       if (!chartApi.visible) return;
-      var t = (now - t0) / 1000;
+      // reduced motion: time stops for the twinkle, the ripples and the centre pulse, as for the idle drift below
+      var t = reduced ? 0 : (now - t0) / 1000;
       if (rotTarget !== null) {
         rot += (rotTarget - rot) * .06;
         if (Math.abs(rotTarget - rot) < .001) rotTarget = null;
-      } else if (!Voice.playing) {
-        rot += .0007;
+      } else if (!Voice.playing && !reduced) {
+        rot += .0007; // idle drift; held still under reduced motion
       }
       place();
       var lvl = Voice.level, cur = Voice.current;
@@ -421,11 +425,14 @@
       durEl.textContent = fmt(s.dur);
       player.style.setProperty('--cc', c.color);
     }
+    var mainBtn = player.querySelector('[data-act="toggle"]');
     Voice.on(function (type, s) {
       if (!s) return;
       if (type === 'change') setInfo(s);
       if (type === 'time') curEl.textContent = fmt(audio.currentTime);
       player.classList.toggle('is-playing', Voice.playing);
+      // the big button's name follows what it will do; it said "재생" while playing
+      if (mainBtn) mainBtn.setAttribute('aria-label', Voice.playing ? '일시정지' : '재생');
     });
 
     var idlePeaks = (function () { var a = []; for (var i = 0; i < 96; i++) a.push(.18 + .5 * Math.abs(Math.sin(i * .37) * Math.cos(i * .13))); return a; })();
@@ -492,6 +499,7 @@
   });
   var onair = document.querySelector('.onair');
   var mini = document.getElementById('mini');
+  var miniBtn = mini && mini.querySelector('.mini__btn'), closing = false;
   var miniApi = { draw: function () {} };
   Voice.mini = miniApi;
   var hideTimer = 0;
@@ -507,22 +515,33 @@
     if (!mini || !s) return;
     if (type === 'change' || type === 'play') {
       clearTimeout(hideTimer);
+      // A close still sliding out must not finish: replaying within its .35s used to leave the audio playing under a
+      // hidden mini player. Coming back from closed (or new), the player slides in; under reduced motion it just appears.
+      var wasAway = mini.hidden || closing;
+      closing = false;
+      if (window.gsap) gsap.killTweensOf(mini);
       mini.hidden = false;
       mini.querySelector('.mini__t').textContent = s.title;
       mini.querySelector('.mini__s').textContent = CATS[s.cat].en + ' · ' + s.tags.join(' · ');
       mini.style.setProperty('--cc', CATS[s.cat].color);
-      if (window.gsap && type === 'change') gsap.fromTo(mini, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: .6, ease: 'back.out(1.6)' });
+      if (window.gsap) {
+        if ((type === 'change' || wasAway) && !reduced) gsap.fromTo(mini, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: .6, ease: 'back.out(1.6)' });
+        else gsap.set(mini, { y: 0, opacity: 1 });
+      }
     }
     mini.classList.toggle('is-playing', playing);
+    miniBtn.setAttribute('aria-label', playing ? '일시정지' : '재생');
     if (type === 'ended') hideTimer = setTimeout(function () { mini.hidden = true; }, 2600);
   });
   if (mini) {
-    mini.querySelector('.mini__btn').addEventListener('click', function () { Voice.toggle(Voice.current); });
+    miniBtn.addEventListener('click', function () { Voice.toggle(Voice.current); });
     mini.querySelector('.mini__x').addEventListener('click', function () {
       clearTimeout(hideTimer);
       Voice.pause();
-      var hide = function () { mini.hidden = true; mini.style.opacity = ''; mini.style.transform = ''; };
-      if (window.gsap) gsap.to(mini, { y: 40, opacity: 0, duration: .35, ease: 'power2.in', onComplete: hide });
+      // clearProps resets GSAP's own record too; blanking the inline style left y: 40 cached, and the next close
+      // started with a 40px jump
+      var hide = function () { closing = false; mini.hidden = true; if (window.gsap) gsap.set(mini, { clearProps: 'transform,opacity' }); };
+      if (window.gsap && !reduced) { closing = true; gsap.to(mini, { y: 40, opacity: 0, duration: .35, ease: 'power2.in', onComplete: hide }); }
       else hide();
     });
     var eq = mini.querySelector('.mini__eq'), eg = eq.getContext('2d'), prog = mini.querySelector('.mini__prog');

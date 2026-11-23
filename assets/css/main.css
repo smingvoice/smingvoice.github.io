@@ -56,11 +56,15 @@ h1, h2, h3, p, figure, blockquote, dl, dd { margin: 0; }
 :focus-visible { outline: 2px solid var(--star); outline-offset: 3px; border-radius: 4px; }
 ::selection { background: var(--star); color: var(--ink); }
 [hidden] { display: none !important; }
+/* read by screen readers, not drawn (the whole name or headline next to its letter-by-letter animation) */
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+/* overlays hold the page still when Lenis is off (reduced motion); see lockScroll in main.js */
+html.is-locked { overflow: hidden; }
 
 .wrap { width: 100%; max-width: calc(var(--wrap) + var(--gutter) * 2); margin-inline: auto; padding-inline: var(--gutter); }
 .mono { font-family: var(--f-mono); font-size: .74rem; letter-spacing: .14em; text-transform: uppercase; line-height: 1.5; }
 /* Korean labels: mono tracking pulls Hangul syllables apart, so these use Pretendard with tight spacing */
-.mono:is(.t, .reel__k, .msg__who, .poster__g, .daw__label, .hl__t, .strength__k, .cv__h, .copy, .chart__hint, .legend, .fader__ticks, .ledger__more, .vfeature__cta, .clients__cert, .contact__hint, .filters, .stages__nav, .traits, .link), .pic figcaption, .range__photos figcaption, .clients__list em, .pull cite, .feature__copy p.mono, .skills .mono { font-family: var(--f-body); letter-spacing: .01em; text-transform: none; font-weight: 500; }
+.mono:is(.t, .reel__k, .msg__who, .poster__g, .daw__label, .hl__t, .strength__k, .cv__h, .copy, .chart__hint, .legend, .fader__ticks, .vfeature__cta, .clients__cert, .contact__hint, .filters, .stages__nav, .traits, .link), .pic figcaption, .range__photos figcaption, .clients__list em, .pull cite, .feature__copy p.mono, .skills .mono { font-family: var(--f-body); letter-spacing: .01em; text-transform: none; font-weight: 500; }
 .eyebrow { display: inline-flex; align-items: center; gap: .7em; color: var(--star); margin-bottom: 1.6rem; }
 .h2 { font-family: var(--f-display); font-weight: 700; font-size: clamp(2rem, 4.4vw, 4rem); line-height: 1.2; letter-spacing: -.03em; text-wrap: balance; }
 .h2 em { font-style: normal; color: var(--star); }
@@ -98,6 +102,8 @@ section { position: relative; }
 
 /* ---------- sky & grain ---------- */
 #sky { position: fixed; inset: 0; width: 100%; height: 100vh; height: 100lvh; z-index: 0; display: block; background: linear-gradient(#04061a, #101a46); }
+/* sky.js paints the CSS fallback sky here whenever WebGL is off or lost; a lost context's opaque canvas hid the old one */
+#sky-css { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
 .grain {
   position: fixed; inset: -50%; z-index: 1; pointer-events: none; opacity: .07; mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
@@ -110,6 +116,8 @@ section { position: relative; }
 /* only main.js dismisses the intro, so it must not depend on main.js to get out of the way: without JS it never
    shows, and if main.js never takes it over (`is-intro`), e.g. a failed load or an early error, it hides after 12s */
 html:not(.js) .intro { display: none; }
+/* without JavaScript the star chart, its player, the photo filters and the photo ring would be empty boxes */
+html:not(.js) .voice__stage, html:not(.js) .filters, html:not(.js) .ring, html:not(.js) .ring__cap { display: none; }
 html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 @keyframes intro-failsafe { to { visibility: hidden; } }
 .intro__canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -329,6 +337,9 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 .daw__clips { display: flex; gap: 8px; padding-left: 130px; will-change: transform; }
 .daw__clips li { flex-shrink: 0; height: 34px; display: flex; align-items: center; padding: 0 14px; border-radius: 8px; font-size: .82rem; white-space: nowrap; background: rgba(158, 197, 255, .08); border: 1px solid rgba(158, 197, 255, .18); color: rgba(246, 239, 228, .86); transition: background .3s, border-color .3s, color .3s, box-shadow .3s; }
 .daw__clips li.is-hot { background: rgba(255, 226, 166, .18); border-color: var(--star); color: #fff; box-shadow: 0 0 22px -4px rgba(255, 226, 166, .6); }
+/* strips that do not slide with the scroll (reduced motion, no GSAP, no JS) scroll sideways by hand instead */
+.daw.is-static .daw__clips, html:not(.js) .daw__clips { flex: 1 1 auto; min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
+.daw.is-static .daw__clips::-webkit-scrollbar, html:not(.js) .daw__clips::-webkit-scrollbar { display: none; }
 .credits__note { margin-top: 1.2rem; color: var(--mist); font-size: .9rem; max-width: 60em; }
 
 .reels { margin-top: clamp(70px, 9vw, 120px); }
@@ -400,6 +411,11 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 .stage__title { display: flex; flex-direction: column; gap: .6rem; }
 .stage__en { font-family: var(--f-latin); font-weight: 200; font-size: clamp(3.2rem, 11.5vw, 11.5rem); line-height: .88; letter-spacing: -.045em; font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0; display: block; margin-left: -.04em; }
 .stage__en .ch { display: inline-block; will-change: transform; }
+/* The letters rise into place out of a mask at the title's bottom edge; they no longer slide down over the Korean
+   subtitle. Since a3b7dcf the subtitles run long enough to sit under "g" and "y", which crossed them mid-scrub and on
+   the way back up, and at rest cut 4–5px into them. The padding makes room for descenders below the tight line, and
+   the clip trims only the bottom edge, so the tops and the tilt are never cut. */
+.stage__en[data-axis] { padding-bottom: .2em; clip-path: inset(-.4em -.3em 0 -.3em); }
 .stage__ko { font-family: var(--f-display); font-weight: 600; font-size: clamp(1.4rem, 2.6vw, 2.3rem); letter-spacing: -.02em; color: var(--star); }
 .stage__pitch { font-size: clamp(1.05rem, 1.5vw, 1.3rem); color: rgba(246, 239, 228, .82); max-width: 36em; line-height: 1.65; }
 .stage__pitch b { color: var(--ivory); font-weight: 600; }
@@ -431,10 +447,6 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 .ledger__list .t { color: var(--mist); font-size: .74rem; }
 .ledger__list .n { font-size: 1.02rem; }
 .ledger__list .v { font-size: .78rem; color: var(--star); text-align: right; }
-.ledger__list li.is-extra { display: none; }
-.ledger.is-open .ledger__list li.is-extra { display: grid; }
-.ledger__more { margin-top: 1.4rem; padding: .9em 1.6em; border-radius: 999px; border: 1px solid var(--line); color: var(--ivory); transition: border-color .3s, background .3s; }
-.ledger__more:hover { border-color: var(--star); background: rgba(255, 226, 166, .08); }
 
 /* ---------- VIP ---------- */
 .route { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); row-gap: clamp(28px, 4vw, 60px); column-gap: clamp(40px, 10vw, 160px); padding-block: 20px; }
@@ -568,7 +580,7 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 .filters button { padding: .7em 1.15em; border-radius: 999px; border: 1px solid var(--line); color: var(--mist); font-size: .76rem; transition: all .35s; }
 .filters button:hover { color: var(--ivory); border-color: rgba(246, 239, 228, .5); }
 .filters button.is-on { background: var(--ivory); color: var(--ink); border-color: var(--ivory); }
-.ring { position: relative; height: clamp(380px, 52vw, 640px); margin-top: clamp(30px, 5vw, 60px); perspective: 1000px; perspective-origin: 50% 50%; cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.ring { position: relative; height: clamp(380px, 52vw, 640px); height: min(clamp(380px, 52vw, 640px), calc(100svh - var(--nav-h) - 24px)); margin-top: clamp(30px, 5vw, 60px); perspective: 1000px; perspective-origin: 50% 50%; cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .ring:active { cursor: grabbing; }
 .ring__stage { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; }
 .ring__item { position: absolute; left: 0; top: 0; width: var(--iw, 300px); height: var(--ih, 400px); margin: calc(var(--ih, 400px) / -2) 0 0 calc(var(--iw, 300px) / -2); border-radius: 18px; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; box-shadow: 0 30px 60px -30px rgba(0, 0, 0, .8); background: #1a1440; }
@@ -581,11 +593,14 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 /* ---------- reviews (light) ---------- */
 .reviews, .profile, .contact { color: var(--plum); }
 .reviews { padding-block: clamp(100px, 13vw, 190px) clamp(70px, 9vw, 130px); }
-.reviews .eyebrow, .profile .eyebrow, .contact .eyebrow { color: #a5561a; }
+/* the dawn behind reviews and profile is still dark rose (#c78da8 at its top): the small labels there take a deeper
+   rust and the lead a deeper plum to reach 4.5:1 (they were 2.37–3.89:1); contact's pale sky keeps the amber */
+.reviews .eyebrow, .profile .eyebrow { color: #5c2406; }
+.contact .eyebrow { color: #a5561a; }
 .reviews__grid { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: clamp(32px, 6vw, 96px); align-items: start; }
 .reviews__head { position: sticky; top: calc(var(--stick-top) + 40px); transition: top .5s var(--ease); display: grid; gap: 1.2rem; }
 .reviews__head .eyebrow { margin-bottom: 0; }
-.reviews__lead { color: var(--plum-2); }
+.reviews__lead { color: #3f2d55; }
 .reviews__big { font-family: var(--f-display); font-weight: 600; font-size: clamp(1.5rem, 2.6vw, 2.3rem); line-height: 1.45; letter-spacing: -.03em; margin-top: 1rem; }
 .reviews__big .w { opacity: .3; transition: opacity .15s; }
 .reviews__big .w.is-on { opacity: 1; }
@@ -810,6 +825,9 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
   .hero__cta { margin-top: 1.2rem; }
 }
 @media (max-width: 560px) {
+  .pic figcaption { white-space: normal; border-radius: 12px; line-height: 1.35; }
+  /* a long credit wraps to two lines rather than running wider than the strip's visible part beside its label */
+  .daw__clips li { white-space: normal; max-width: 220px; height: auto; min-height: 34px; padding: 6px 12px; line-height: 1.25; }
   .hero__title { font-size: clamp(2.1rem, 10vw, 2.8rem); }
   .hero__cta .btn { --h: 48px; }
   .hero__cta .btn--text { width: 100%; justify-content: flex-start; }

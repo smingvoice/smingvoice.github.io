@@ -161,17 +161,23 @@
 
   // The light sections (reviews, profile, contact) use plum text because the sky turns to dawn behind them. With no
   // drawing context the dark #sky background stayed put and that text fell to about 1.1:1 contrast. So whenever the
-  // shader can't draw, the same smoothed palette is painted as gradients on the canvas element's own background.
+  // shader can't draw, the same smoothed palette is painted as gradients on a layer just above the canvas.
+  // The layer has to be separate. The canvas's own CSS background only shows while it never had a context; once a
+  // context is lost, its opaque (alpha: false) surface covers that background and the page went white.
+  var veil = document.createElement('div');
+  veil.id = 'sky-css'; veil.setAttribute('aria-hidden', 'true');
+  canvas.parentNode.insertBefore(veil, canvas.nextSibling);
   var painted = '';
   var rgba = function (c, a) { return 'rgba(' + Math.round(c[0] * 255) + ',' + Math.round(c[1] * 255) + ',' + Math.round(c[2] * 255) + ',' + a + ')'; };
   function paintCss() {
     var glow = Math.min(1, cur.ga + cur.sun * .4).toFixed(2);
     var bg = 'radial-gradient(130% 70% at 50% 100%,' + rgba(cur.glow, glow) + ',' + rgba(cur.glow, 0) + '),linear-gradient(' + rgba(cur.top, 1) + ',' + rgba(cur.bot, 1) + ')';
-    if (bg !== painted) { painted = bg; canvas.style.background = bg; }
+    if (bg !== painted) { painted = bg; veil.style.background = bg; }
   }
   function useGl(on) {
     live = on; api.ok = on;
     document.documentElement.classList.toggle('no-webgl', !on);
+    veil.hidden = on;
     if (on) resize(true); else paintCss();
   }
   // every failure lands in the fallback: no context, a program that won't build, or a context lost later on
@@ -183,8 +189,12 @@
   useGl(!!gl && setup());
   window.addEventListener('resize', function () { resize(false); });
 
+  // reduced motion: the stars and nebula hold still (time stops) and the sky ignores the pointer; the palette still
+  // follows the page from night to dawn
+  var reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   var mouse = [0, 0], mT = [0, 0];
   window.addEventListener('pointermove', function (e) {
+    if (reduced) return;
     mT[0] = (e.clientX / window.innerWidth) * 2 - 1;
     mT[1] = -((e.clientY / window.innerHeight) * 2 - 1);
   }, { passive: true });
@@ -212,7 +222,7 @@
     tensionS = lerp(tensionS, api.tension || 0, .1);
 
     gl.uniform2f(U.uRes, W, H);
-    gl.uniform1f(U.uTime, (now - t0) / 1000);
+    gl.uniform1f(U.uTime, reduced ? 0 : (now - t0) / 1000);
     gl.uniform2f(U.uMouse, mouse[0], mouse[1]);
     gl.uniform1f(U.uScroll, window.scrollY * (H / (canvas.clientHeight || 1)));
     gl.uniform3fv(U.uTop, cur.top); gl.uniform3fv(U.uBot, cur.bot); gl.uniform3fv(U.uGlow, cur.glow);

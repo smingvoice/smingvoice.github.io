@@ -90,8 +90,8 @@
     <li data-target="range"><b>04</b><span>진행 스타일</span></li>
     <li data-target="official"><b>05</b><span>공식행사</span></li>
     <li data-target="voice-mc"><b>06</b><span>문화행사 · 성우 MC</span></li>
-    <li data-target="vip"><b>07</b><span>VIP 의전</span></li>
-    <li data-target="team"><b>08</b><span>팀빌딩</span></li>
+    <li data-target="vip"><b>07</b><span>VIP 담당 아나운서</span></li>
+    <li data-target="team"><b>08</b><span>팀빌딩 MC</span></li>
     <li data-target="gallery"><b>09</b><span>현장 기록</span></li>
     <li data-target="reviews"><b>10</b><span>후기</span></li>
     <li data-target="profile"><b>11</b><span>프로필</span></li>
@@ -173,7 +173,7 @@
 
   <div class="wrap stats">
     <div class="stat"><b class="stat__n" data-count="2016" data-plain>2016</b><span>성우 활동 시작<small>㈜알려줌 콘텐츠 제작팀</small></span></div>
-    <div class="stat"><b class="stat__n" data-count="71">71</b><span>대표 행사 경력<small>2026.10.5 기준</small></span></div>
+    <div class="stat"><b class="stat__n" data-count="78">78</b><span>대표 행사 경력<small>2026.10.23 기준</small></span></div>
     <div class="stat"><b class="stat__n" data-count="1200">1,200</b><span>최대 진행 인원<small>서울잠원초 늘봄학교 레크</small></span></div>
     <div class="stat"><b class="stat__n" data-count="10">10</b><span>연극 출연작<small>보이체크 · 시련 · 벚꽃동산 외</small></span></div>
   </div>
@@ -341,7 +341,7 @@
     <div class="hls wrap">
       <article class="hl"><p class="hl__t mono">MOU체결식</p><h3>고용노동부&amp;한국산업인력공단 합동행사</h3><p class="hl__v">고용노동부 국장님 참석</p></article>
       <article class="hl"><p class="hl__t mono">개소식</p><h3>인천광역시교육청 동부거점 늘봄센터</h3><p class="hl__v">인천시 교육감님 참석</p></article>
-      <article class="hl"><p class="hl__t mono">교류의 날</p><h3>군포소상공인 교류의 날 MC</h3><p class="hl__v">군포시장님, 이학영국회의원님 참석</p></article>
+      <article class="hl"><h3>군포소상공인 교류의 날 MC</h3><p class="hl__v">군포시장님, 이학영국회의원님 참석</p></article>
       <article class="hl"><p class="hl__t mono">발대식</p><h3>2026 개인정보불법유통대응 모니터링단 발대식 MC</h3><p class="hl__v">정보통신 위원장님 참석</p></article>
     </div>
     <div class="ledger wrap" data-preview>
@@ -365,7 +365,7 @@
         <li data-img="ev-incheonbook"><span class="t mono">워크숍</span><span class="n">인천독서대전 워크숍MC</span></li>
         <li data-img="ev-socialfair"><span class="t mono">박람회</span><span class="n">인천시 사회적경제박람회</span></li>
         <li><span class="t mono">설명회</span><span class="n">군포트리아츠지식산업센터 설명회 MC</span></li>
-        <li><span class="t mono">교류의 날</span><span class="n">군포소상공인 교류의 날 MC</span><span class="v">군포시장님, 이학영국회의원님 참석</span></li>
+        <li><span class="t mono"></span><span class="n">군포소상공인 교류의 날 MC</span><span class="v">군포시장님, 이학영국회의원님 참석</span></li>
         <li><span class="t mono">페스티벌</span><span class="n">제주청년센터 끼리 페스티벌MC</span></li>
         <li><span class="t mono">기념식</span><span class="n">재경고흥군 향우청년회 제 45대 체육대회 기념식 및 입장식MC</span></li>
         <li data-img="ev-football"><span class="t mono">고별전</span><span class="n">고양시무원풋볼클럽 고별전MC</span></li>
@@ -470,7 +470,6 @@
         <span class="badge__hole" aria-hidden="true"></span>
         <p class="badge__ribbon mono">DOCENT</p>
         <h3>(전) 창조부산하 국가IT전시관 VIP 담당 도슨트</h3>
-        <p class="badge__venue">한국어 VIP 해설</p>
       </article>
     </div>
     <div class="vip__media wrap">
@@ -584,10 +583,10 @@
     <p class="eyebrow mono"><span data-scramble>CUE 09 · 현장 기록 · ARCHIVE</span></p>
     <h2 class="h2 split">무대 위의 순간들</h2>
     <div class="filters mono" role="group" aria-label="현장 사진 분류">
-      <button type="button" class="is-on" data-filter="all">전체</button>
-      <button type="button" data-filter="official">공식행사 · VIP</button>
-      <button type="button" data-filter="stage">문화행사 · 성우 MC</button>
-      <button type="button" data-filter="team">팀빌딩 · 레크</button>
+      <button type="button" class="is-on" data-filter="all" aria-pressed="true">전체</button>
+      <button type="button" data-filter="official" aria-pressed="false">공식행사 · VIP</button>
+      <button type="button" data-filter="stage" aria-pressed="false">문화행사 · 성우 MC</button>
+      <button type="button" data-filter="team" aria-pressed="false">팀빌딩 · 레크</button>
     </div>
   </div>
   <div class="ring" id="ring">
@@ -595,6 +594,7 @@
     <p class="ring__hint mono" aria-hidden="true">DRAG ← →</p>
   </div>
   <p class="ring__cap wrap mono" aria-live="polite"></p>
+  <noscript><p class="wrap">현장 사진 링에는 자바스크립트가 필요합니다.</p></noscript>
 </section>
 
 <!-- CUE 10 · REVIEWS -->
