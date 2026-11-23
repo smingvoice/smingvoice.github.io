@@ -24,8 +24,11 @@
   --wrap: 1240px;
   --gutter: clamp(16px, 4vw, 48px);
   --nav-h: 68px;
+  /* where sticky bars stop: under the header, or at the top edge while the header is slid away (html.nav-hidden) */
+  --stick-top: calc(var(--nav-h) + env(safe-area-inset-top, 0px));
   --ease: cubic-bezier(.16, 1, .3, 1);
 }
+html.nav-hidden { --stick-top: env(safe-area-inset-top, 0px); }
 
 /* ---------- base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
@@ -163,9 +166,12 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 .nav__menu[aria-expanded="true"] span:first-child { top: 21px; transform: rotate(45deg); }
 .nav__menu[aria-expanded="true"] span:last-child { top: 21px; transform: rotate(-45deg); }
 
-/* centred with auto margins rather than justify-content: when the list is taller than the screen (phones held sideways)
-   the margins collapse to 0 and the menu scrolls from its top, where centring pushed both ends out of reach */
-.menu { position: fixed; inset: 0; z-index: 55; background: rgba(6, 9, 25, .96); backdrop-filter: blur(10px); display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; padding: calc(var(--nav-h) + 20px) var(--gutter) 40px; clip-path: circle(0 at calc(100% - 44px) 34px); }
+/* The panel holds still; only .menu__scroll scrolls, and it starts below the header bar. When the whole panel scrolled,
+   phones held sideways ran the items up under the see-through header and over the logo. The list is centred with auto
+   margins rather than justify-content: when it is taller than the screen the margins shrink to 0 and it scrolls from
+   its top, where centring pushed both ends out of reach. */
+.menu { position: fixed; inset: 0; z-index: 55; background: rgba(6, 9, 25, .96); backdrop-filter: blur(10px); clip-path: circle(0 at calc(100% - 44px) 34px); }
+.menu__scroll { position: absolute; inset: calc(var(--nav-h) + env(safe-area-inset-top, 0px)) 0 0; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; padding: 20px var(--gutter) 40px; }
 .menu__links { display: grid; gap: .2rem; margin-top: auto; }
 .menu__links a { display: flex; align-items: baseline; gap: 1rem; font-family: var(--f-display); font-weight: 600; font-size: clamp(1.7rem, 7vw, 2.6rem); line-height: 1.35; letter-spacing: -.03em; }
 .menu__links small { color: var(--star); font-size: .7rem; }
@@ -376,7 +382,7 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 /* ---------- stages ---------- */
 .stages { position: relative; }
 .stages__nav {
-  position: sticky; top: calc(var(--nav-h) + 10px); z-index: 30; margin: 0 auto; width: max-content; max-width: calc(100% - 2 * var(--gutter));
+  position: sticky; top: calc(var(--stick-top) + 10px); transition: top .5s var(--ease); z-index: 30; margin: 0 auto; width: max-content; max-width: calc(100% - 2 * var(--gutter));
   display: flex; gap: 4px; padding: 5px; border-radius: 999px; background: rgba(8, 12, 34, .62); border: 1px solid var(--line);
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); font-size: .66rem; overflow-x: auto; scrollbar-width: none;
 }
@@ -481,7 +487,7 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 .rec__lead { color: rgba(246, 239, 228, .82); }
 .rec__lead b { color: var(--star); font-weight: 700; }
 .rec__body { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: clamp(24px, 4vw, 56px); margin-top: clamp(32px, 4vw, 56px); align-items: start; }
-.crowd { position: sticky; top: calc(var(--nav-h) + 74px); aspect-ratio: 4 / 3; border-radius: 24px; overflow: hidden; background: radial-gradient(ellipse at 50% 120%, rgba(255, 159, 176, .28), transparent 60%), rgba(6, 9, 25, .6); border: 1px solid var(--line); }
+.crowd { position: sticky; top: calc(var(--stick-top) + 74px); transition: top .5s var(--ease); aspect-ratio: 4 / 3; border-radius: 24px; overflow: hidden; background: radial-gradient(ellipse at 50% 120%, rgba(255, 159, 176, .28), transparent 60%), rgba(6, 9, 25, .6); border: 1px solid var(--line); }
 .crowd__canvas { width: 100%; height: 100%; display: block; }
 .crowd__count { position: absolute; left: 22px; top: 18px; display: flex; flex-direction: column; }
 .crowd__n { font-family: var(--f-latin); font-weight: 300; font-size: clamp(2.6rem, 5vw, 4.6rem); line-height: 1; font-variation-settings: "opsz" 144; font-variant-numeric: tabular-nums; }
@@ -526,6 +532,8 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 .poster::before { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(circle at var(--px, 70%) var(--py, 20%), rgba(255, 255, 255, .28), transparent 45%); opacity: .8; transition: opacity .4s; }
 .poster::after { content: "✦"; position: absolute; top: .9rem; right: 1rem; font-size: 1.1rem; color: rgba(255, 255, 255, .8); }
 .poster:hover { transform: translateY(-8px) rotate(-1deg); box-shadow: 0 36px 70px -24px rgba(0, 0, 0, .9); }
+/* set by main.js when GSAP drives the transform (entrance, tilt, lift): a CSS transform transition would fight every frame */
+.poster.is-gsap { transition: box-shadow .6s; }
 .poster__g { position: absolute; top: 1rem; left: 1.1rem; font-size: .7rem; padding: .35em .7em; border-radius: 999px; background: rgba(0, 0, 0, .28); }
 .poster h3 { font-family: var(--f-display); font-weight: 700; font-size: clamp(.98rem, 1.25vw, 1.12rem); line-height: 1.4; letter-spacing: -.02em; }
 .poster p:last-child { font-size: .76rem; line-height: 1.5; color: rgba(255, 255, 255, .78); }
@@ -572,7 +580,7 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 .reviews { padding-block: clamp(100px, 13vw, 190px) clamp(70px, 9vw, 130px); }
 .reviews .eyebrow, .profile .eyebrow, .contact .eyebrow { color: #a5561a; }
 .reviews__grid { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: clamp(32px, 6vw, 96px); align-items: start; }
-.reviews__head { position: sticky; top: calc(var(--nav-h) + 40px); display: grid; gap: 1.2rem; }
+.reviews__head { position: sticky; top: calc(var(--stick-top) + 40px); transition: top .5s var(--ease); display: grid; gap: 1.2rem; }
 .reviews__head .eyebrow { margin-bottom: 0; }
 .reviews__lead { color: var(--plum-2); }
 .reviews__big { font-family: var(--f-display); font-weight: 600; font-size: clamp(1.5rem, 2.6vw, 2.3rem); line-height: 1.45; letter-spacing: -.03em; margin-top: 1rem; }
@@ -588,8 +596,9 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 .msg--me .msg__b { border-radius: 20px 4px 20px 20px; background: #fee500; color: #2a2208; transform-origin: 100% 0; }
 .msg--note .msg__b { background: #f4ecff; }
 .msg--card .msg__b { background: #fffaf0; border: 1px solid #f1dfbf; border-radius: 16px; }
-.msg__typing { display: inline-flex; gap: 4px; padding: .9rem 1.1rem; border-radius: 4px 20px 20px 20px; background: #fff; width: max-content; }
-.msg--me .msg__typing { border-radius: 20px 4px 20px 20px; background: #fee500; }
+/* the dots sit inside the hidden bubble (main.js), so the bubble keeps its height and nothing below it moves */
+.msg__typing { position: absolute; top: 0; left: 0; visibility: visible; display: inline-flex; gap: 4px; padding: .9rem 1.1rem; border-radius: 4px 20px 20px 20px; background: #fff; width: max-content; }
+.msg--me .msg__typing { left: auto; right: 0; border-radius: 20px 4px 20px 20px; background: #fee500; }
 .msg__typing i { width: 6px; height: 6px; border-radius: 50%; background: #9a8aa8; animation: typing 1s infinite; }
 .msg__typing i:nth-child(2) { animation-delay: .15s; }
 .msg__typing i:nth-child(3) { animation-delay: .3s; }
@@ -783,7 +792,19 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
   .card3d { max-width: 330px; }
   .ledger__list li { grid-template-columns: 1fr; gap: .2rem; }
   .ledger__list .v { text-align: left; }
-  .rec__list { max-height: none; }
+  /* the audience only sticks beside the list; stacked above it, it stayed pinned while all 16 rows ran over its numbers */
+  .crowd { position: relative; top: auto; }
+}
+/* Phones held sideways. The stacked layout above starts the copy 300px down, which is below a ~340px-tall screen, so the
+   first screen showed only sky. Put the copy back beside the portrait, starting right under the header bar. */
+@media (max-width: 900px) and (orientation: landscape) {
+  .hero__inner { grid-template-columns: minmax(0, 1.3fr) minmax(0, .7fr); align-items: start; }
+  .hero__fig { position: relative; right: auto; top: auto; align-self: start; height: calc(100svh - var(--nav-h) - 16px); }
+  .hero__img { -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent 100%); mask-image: linear-gradient(to bottom, #000 78%, transparent 100%); }
+  .hero__copy { margin-top: 0; padding: 14px 0 110px; }
+  .hero__title { font-size: clamp(1.9rem, 5vw, 2.7rem); }
+  .hero__name { margin: .8rem 0 .7rem; }
+  .hero__cta { margin-top: 1.2rem; }
 }
 @media (max-width: 560px) {
   .hero__title { font-size: clamp(2.1rem, 10vw, 2.8rem); }

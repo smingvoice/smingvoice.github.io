@@ -49,6 +49,15 @@
     if (past.length) gsap.set(past, Object.assign({ overwrite: true }, end));
     if (now.length) gsap.fromTo(now, from, Object.assign({ overwrite: true, stagger: { amount: Math.min(.6, (now.length - 1) * .07) } }, end, opts));
   };
+  // The hidden state goes on when the batch is set up. Put on only at the trigger line, an element first showed as it is
+  // below that line, then blinked out and rose again. clamp() keeps a start that lies past the end of the page reachable,
+  // so nothing hidden here can stay hidden.
+  var batchReveal = function (targets, start, from, end, opts) {
+    var els = typeof targets === 'string' ? $$(targets) : targets;
+    if (!els.length) return;
+    gsap.set(els, from);
+    ScrollTrigger.batch(els, { start: 'clamp(' + start + ')', once: true, onEnter: function (b) { revealBatch(b, from, end, opts); } });
+  };
 
   /* ---------- smooth scroll ---------- */
   var lenis = null;
@@ -115,12 +124,21 @@
   safe('nav', function () {
     var nav = $('#nav'), lastY = window.scrollY, menuBtn = $('.nav__menu'), menu = $('#menu');
     var links = $$('.nav__links a');
+    // mirrored on <html> so the sticky bars below the header (stage switcher, audience, reviews heading) move up into
+    // its place instead of leaving a header-high gap above them while it is slid away
+    var hidden = false;
+    var setHidden = function (on) {
+      if (on === hidden) return;
+      hidden = on;
+      nav.classList.toggle('is-hidden', on);
+      root.classList.toggle('nav-hidden', on);
+    };
     onTick(function () {
       var y = window.scrollY;
       nav.classList.toggle('is-solid', y > 60);
       if (!menu || menu.hidden) {
-        if (y > lastY + 4 && y > 500) nav.classList.add('is-hidden');
-        else if (y < lastY - 4 || y < 200) nav.classList.remove('is-hidden');
+        if (y > lastY + 4 && y > 500) setHidden(true);
+        else if (y < lastY - 4 || y < 200) setHidden(false);
       }
       lastY = y;
     });
@@ -477,10 +495,7 @@
       }
     });
     // cards and lists
-    ScrollTrigger.batch('.strength, .hl, .clients__list li, .reel, .vfeature, .tracks__col, .cv__col, .stat', {
-      start: 'top 90%', once: true,
-      onEnter: function (els) { revealBatch(els, { y: 40, opacity: 0 }, { y: 0, opacity: 1 }, { duration: 1.1, ease: 'expo.out' }); }
-    });
+    batchReveal('.strength, .hl, .clients__list li, .reel, .vfeature, .tracks__col, .cv__col, .stat', 'top 90%', { y: 40, opacity: 0 }, { y: 0, opacity: 1 }, { duration: 1.1, ease: 'expo.out' });
     $$('.pull p').forEach(function (p) {
       gsap.fromTo(p, { opacity: 0, y: 30, filter: 'blur(8px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.4, ease: 'expo.out', scrollTrigger: { trigger: p, start: 'top 86%', once: true } });
     });
@@ -604,8 +619,12 @@
       { m: 'MODE 04 · 레크', t: '현장을 뒤집는 레크리에이션', d: '1,200명 앞에서도 흔들리지 않는 에너지. 웃음과 함성으로 현장을 가득 채웁니다.', w: 'Bright!', v: '레크' }
     ];
     var val = 0, target = 0, dragging = false, mode = -1, on = false, drawn = -1;
-    var cv = $('.range__wave', sec), g = cv.getContext('2d'), W = 0, H = 0, dpr = 1;
-    var size = function () { var r = cv.getBoundingClientRect(); dpr = Math.min(devicePixelRatio || 1, 2); W = r.width; H = r.height; cv.width = W * dpr; cv.height = H * dpr; };
+    var cv = $('.range__wave', sec), g = cv.getContext('2d'), W = 0, H = 0, dpr = 1, fw = 0;
+    // fw: the fader's width, so the knob can move by transform (compositor only) instead of re-laying out `left` every frame
+    var size = function () {
+      var r = cv.getBoundingClientRect(); dpr = Math.min(devicePixelRatio || 1, 2); W = r.width; H = r.height; cv.width = W * dpr; cv.height = H * dpr;
+      fw = fader.clientWidth; drawn = -1;
+    };
     size(); window.addEventListener('resize', size);
     visible(sec, function (v) { on = v; if (!v) Sky.tension = 0; });
 
@@ -668,7 +687,7 @@
       val += (target - val) * .12;
       if (Math.abs(val - drawn) > .0004) {
         drawn = val;
-        knob.style.left = (val * 100).toFixed(2) + '%';
+        knob.style.transform = 'translateX(' + (val * fw).toFixed(1) + 'px)';
         fill.style.transform = 'scaleX(' + val.toFixed(4) + ')';
         fader.setAttribute('aria-valuenow', String(Math.round(val * 100)));
         var tone = Math.round(96 - val * 70), energy = Math.round(12 + val * 86), tempo = Math.round(72 + val * 60);
@@ -739,7 +758,7 @@
     $$('.ledger').forEach(function (led) {
       var items = $$('.ledger__list li', led), more = $('.ledger__more', led), KEEP = more ? 8 : items.length;
       items.forEach(function (li, i) { if (i >= KEEP) li.classList.add('is-extra'); });
-      if (hasGsap && !reduced) ScrollTrigger.batch(items.slice(0, KEEP), { start: 'top 92%', once: true, onEnter: function (els) { revealBatch(els, { y: 30, opacity: 0 }, { y: 0, opacity: 1 }, { duration: 1, ease: 'expo.out' }); } });
+      if (hasGsap && !reduced) batchReveal(items.slice(0, KEEP), 'top 92%', { y: 30, opacity: 0 }, { y: 0, opacity: 1 }, { duration: 1, ease: 'expo.out' });
       if (more) more.addEventListener('click', function () {
         var open = !led.classList.contains('is-open');
         led.classList.toggle('is-open', open);
@@ -763,15 +782,24 @@
     };
     // mouse only: a touch tap's compatibility mouseenter gets no matching leave until the next tap elsewhere
     var isMouse = function (e) { return e.pointerType === 'mouse'; };
+    // While the page scrolls, rows slide under a resting pointer and fire enter/leave. The photo stays down until the
+    // pointer itself moves, instead of popping up for each row that passes.
+    var scrolling = false;
+    window.addEventListener('scroll', function () { if (!scrolling) { scrolling = true; setShown(false); } }, { passive: true });
     $$('[data-preview] li[data-img]').forEach(function (li) {
-      li.addEventListener('pointerenter', function (e) {
-        if (!isMouse(e)) return;
+      var show = function (e) {
         img.src = 'assets/img/' + li.getAttribute('data-img') + '.webp';
+        // a hidden photo starts at the pointer; the follow tween would otherwise fly it in from where it was last left
+        // (the first time, the top-left corner of the page)
+        if (!shown) { px(e.clientX + 28, e.clientX + 28); py(e.clientY - 120, e.clientY - 120); rot(0, 0); lastX = e.clientX; }
         setShown(true);
-      });
+      };
+      li.addEventListener('pointerenter', function (e) { if (isMouse(e) && !scrolling) show(e); });
       li.addEventListener('pointerleave', function (e) { if (isMouse(e)) setShown(false); });
       li.addEventListener('pointermove', function (e) {
         if (!isMouse(e)) return;
+        if (scrolling) { if (!e.movementX && !e.movementY) return; scrolling = false; }
+        if (!shown) { show(e); return; }
         px(e.clientX + 28); py(e.clientY - 120);
         rot(clamp((e.clientX - lastX) * .8, -12, 12)); lastX = e.clientX;
       });
@@ -784,13 +812,22 @@
     if (!route) return;
     var svg = $('.route__svg', route), base = $('.route__base', route), line = $('.route__line', route), badges = $$('.badge', route);
     var len = 0;
+    // Badge holes come from layout offsets, not getBoundingClientRect: on a refresh the badges can still be mid-entrance
+    // (lifted 50px and tilted), which bent the path through the air above them. The viewBox is the svg's own box: on phones
+    // it is a 28px strip, and a route-wide viewBox squeezed the line into a hairline.
     var build = function () {
-      var r = route.getBoundingClientRect(), W = r.width, H = r.height;
+      var sr = svg.getBoundingClientRect(), rr = route.getBoundingClientRect(), W = sr.width, H = sr.height;
+      var ox = sr.left - rr.left, oy = sr.top - rr.top, strip = mobileQ.matches;
       svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
       svg.setAttribute('preserveAspectRatio', 'none');
-      var pts = [[mobileQ.matches ? 12 : W / 2, 0]];
-      badges.forEach(function (b) { var br = b.getBoundingClientRect(); pts.push([mobileQ.matches ? 12 : br.left - r.left + br.width / 2, br.top - r.top + 14]); });
-      pts.push([mobileQ.matches ? 12 : W / 2, H]);
+      var pts = [[W / 2, 0]];
+      badges.forEach(function (b) {
+        var hole = $('.badge__hole', b);
+        var hx = b.offsetLeft + (hole ? hole.offsetLeft + hole.offsetWidth / 2 : b.offsetWidth / 2);
+        var hy = b.offsetTop + (hole ? hole.offsetTop + hole.offsetHeight / 2 : 14);
+        pts.push([strip ? W / 2 : hx - ox, hy - oy]);
+      });
+      pts.push([W / 2, H]);
       var d = 'M' + pts[0][0] + ' ' + pts[0][1];
       for (var i = 1; i < pts.length; i++) {
         var a = pts[i - 1], b = pts[i], my = (a[1] + b[1]) / 2;
@@ -821,11 +858,13 @@
   safe('dominoes', function () {
     var ds = $$('.domino');
     if (!ds.length || !hasGsap || reduced) return;
+    // hidden from the start: set only on enter, the row stood in view below the trigger line, then blinked out and rose
+    gsap.set(ds, { y: 60, opacity: 0 });
     ScrollTrigger.create({
-      trigger: '.dominoes', start: 'top 80%', once: true,
+      trigger: '.dominoes', start: 'clamp(top 80%)', once: true,
       onEnter: function () {
         var tl = gsap.timeline();
-        tl.fromTo(ds, { y: 60, opacity: 0 }, { y: 0, opacity: 1, stagger: .05, duration: .7, ease: 'back.out(1.7)' })
+        tl.to(ds, { y: 0, opacity: 1, stagger: .05, duration: .7, ease: 'back.out(1.7)' })
           .to(ds, { rotation: function (i) { return i === ds.length - 1 ? 72 : 24; }, duration: .32, ease: 'power2.in', stagger: .085 }, '+=.25')
           .to(ds, { rotation: 0, duration: 1.3, ease: 'elastic.out(1, .35)', stagger: { each: .06, from: 'end' } }, '+=.35');
       }
@@ -948,20 +987,23 @@
   safe('posters', function () {
     var ps = $$('.poster');
     if (!ps.length) return;
-    if (hasGsap && !reduced) {
-      ScrollTrigger.batch(ps, {
-        start: 'top 92%', once: true,
-        onEnter: function (els) { revealBatch(els, { y: 90, opacity: 0, rotation: function () { return gsap.utils.random(-10, 10); } }, { y: 0, opacity: 1, rotation: 0 }, { duration: 1.3, ease: 'back.out(1.3)' }); }
-      });
+    var motion = hasGsap && !reduced;
+    if (motion) {
+      // GSAP owns the posters' transform from here on (entrance, tilt, hover lift). `.is-gsap` takes transform out of the
+      // CSS transition, which restarted a .6s transition on every tween frame, and the lift moves into the tween because
+      // GSAP's inline transform hides the :hover one.
+      ps.forEach(function (p) { p.classList.add('is-gsap'); });
+      batchReveal(ps, 'top 92%', { y: 90, opacity: 0, rotation: function () { return gsap.utils.random(-10, 10); } }, { y: 0, opacity: 1, rotation: 0 }, { duration: 1.3, ease: 'back.out(1.3)' });
     }
     if (!finePointer) return;
     ps.forEach(function (p) {
+      p.addEventListener('mouseenter', function () { if (motion) gsap.to(p, { y: -8, rotation: -1, duration: .6, ease: 'power3', overwrite: 'auto' }); });
       p.addEventListener('mousemove', function (e) {
         var r = p.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
         p.style.setProperty('--px', (x * 100).toFixed(1) + '%'); p.style.setProperty('--py', (y * 100).toFixed(1) + '%');
-        if (hasGsap) gsap.to(p, { rotationY: (x - .5) * 14, rotationX: -(y - .5) * 12, transformPerspective: 700, duration: .5, ease: 'power3' });
+        if (motion) gsap.to(p, { rotationY: (x - .5) * 14, rotationX: -(y - .5) * 12, transformPerspective: 700, duration: .5, ease: 'power3', overwrite: 'auto' });
       });
-      p.addEventListener('mouseleave', function () { if (hasGsap) gsap.to(p, { rotationY: 0, rotationX: 0, duration: .9, ease: 'elastic.out(1, .5)' }); });
+      p.addEventListener('mouseleave', function () { if (motion) gsap.to(p, { y: 0, rotation: 0, rotationY: 0, rotationX: 0, duration: .9, ease: 'elastic.out(1, .5)', overwrite: 'auto' }); });
     });
   });
 
@@ -1035,10 +1077,14 @@
         $$('.filters button').forEach(function (x) { x.classList.toggle('is-on', x === b); });
         var f = b.getAttribute('data-filter');
         if (hasGsap && !reduced) {
-          gsap.to(stage, { opacity: 0, scale: .9, duration: .35, ease: 'power2.in', onComplete: function () {
+          // Fade the ring box, not the 3D stage. Opacity below 1 on a preserve-3d element flattens it, so the cards
+          // spun as flat rectangles for the whole fade and snapped back into depth at the last frame.
+          gsap.to(ring, { opacity: 0, duration: .35, ease: 'power2.in', overwrite: 'auto' });
+          gsap.to(stage, { scale: .9, duration: .35, ease: 'power2.in', overwrite: 'auto', onComplete: function () {
             build(f);
             vel = 6;
-            gsap.fromTo(stage, { opacity: 0, scale: 1.08 }, { opacity: 1, scale: 1, duration: .9, ease: 'expo.out' });
+            gsap.to(ring, { opacity: 1, duration: .9, ease: 'expo.out', overwrite: 'auto' });
+            gsap.fromTo(stage, { scale: 1.08 }, { scale: 1, duration: .9, ease: 'expo.out', overwrite: 'auto' });
           } });
         } else build(f);
       });
@@ -1107,12 +1153,14 @@
           var b = m.querySelector('.msg__b'), who = m.querySelector('.msg__who');
           var typing = document.createElement('div'); typing.className = 'msg__typing'; typing.innerHTML = '<i></i><i></i><i></i>';
           var tl = gsap.timeline({ delay: Math.min(i, 4) * .38 });
+          // The bubble keeps its box (only hidden) and the dots sit inside it. Swapping the bubble out for the one-line
+          // dots shrank and regrew the chat, and everything below it jumped twice for each message.
           tl.set(m, { opacity: 1, y: 0 })
-            .set(b, { display: 'none' })
-            .add(function () { m.insertBefore(typing, b); })
+            .set(b, { visibility: 'hidden' })
+            .add(function () { b.appendChild(typing); })
             .fromTo([who, typing], { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: .35, ease: 'power2.out' })
-            .add(function () { typing.remove(); b.style.display = ''; }, '+=.42')
-            .fromTo(b, { scale: .55, opacity: 0 }, { scale: 1, opacity: 1, duration: .6, ease: 'back.out(1.9)' });
+            .add(function () { typing.remove(); }, '+=.42')
+            .fromTo(b, { scale: .55, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: .6, ease: 'back.out(1.9)' });
         });
       }
     });
