@@ -124,6 +124,12 @@ html:not(.js) .reviews { background: linear-gradient(#c78da8, #ffd3b0); }
 html:not(.js) .profile { background: linear-gradient(#f1c1b4, #fff0de); }
 html:not(.js) .contact { background: linear-gradient(#ffdcbc, #fff6ea); }
 html:not(.js) .fader, html:not(.js) .crowd { display: none; }
+html:not(.js) .foot { background: #fff6ea; }
+/* Without the script the header never switches to its light style, so its ivory logo and links went pale on the
+   light sections (1.1–2.3:1). It keeps the dark bar it has on the night sky; the cue rail, which only the script
+   moves, is left out. */
+html:not(.js) .nav { background: rgba(7, 10, 30, .82); backdrop-filter: blur(14px) saturate(1.3); -webkit-backdrop-filter: blur(14px) saturate(1.3); border-color: var(--line); }
+html:not(.js) .cues { display: none; }
 html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 @keyframes intro-failsafe { to { visibility: hidden; } }
 .intro__canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -434,7 +440,7 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 
 .pic { position: relative; overflow: hidden; border-radius: 18px; background: #0d1230; box-shadow: 0 30px 70px -36px rgba(0, 0, 0, .8); }
 .pic img { width: 100%; height: 100%; object-fit: cover; transform-origin: center; }
-.pic figcaption { position: absolute; left: 12px; bottom: 12px; right: 12px; width: max-content; max-width: calc(100% - 24px); padding: .45em .85em; border-radius: 999px; background: rgba(6, 9, 25, .62); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-size: .7rem; line-height: 1.35; color: var(--ivory); border-radius: 14px; }
+.pic figcaption { position: absolute; left: 12px; bottom: 12px; right: 12px; width: max-content; max-width: calc(100% - 24px); padding: .45em .85em; background: rgba(6, 9, 25, .62); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-size: .7rem; line-height: 1.35; color: var(--ivory); border-radius: 14px; }
 /* captions wrap rather than end in "…" (a credit like "사진 데일리게임" was cut off at every width); a 14px radius is
    still a full pill on one line and a rounded box on two */
 .collage { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-auto-rows: clamp(60px, 7vw, 96px); gap: clamp(12px, 1.6vw, 22px); }
@@ -711,7 +717,8 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 .foot { position: relative; z-index: 2; color: var(--plum); padding-block: 40px calc(40px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid rgba(37, 22, 62, .14); }
 .foot__in { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; align-items: center; }
 .foot__line { font-family: var(--f-display); font-weight: 500; font-size: 1.05rem; }
-.foot__meta { color: var(--plum-2); font-size: .6rem; }
+/* the copyright line is tiny (.6rem); in the full plum its thin strokes still read at 4.5:1 or better on the dawn */
+.foot__meta { color: var(--plum); font-size: .6rem; }
 
 /* ---------- mini player / modal / preview / toast ---------- */
 .mini { position: fixed; left: 0; right: 0; margin-inline: auto; width: min(460px, calc(100% - 24px)); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 70; display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 999px; background: rgba(8, 12, 34, .82); color: var(--ivory); border: 1px solid var(--line); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: 0 20px 50px -20px rgba(0, 0, 0, .8); overflow: hidden; }

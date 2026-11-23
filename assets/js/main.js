@@ -70,11 +70,18 @@
   });
   var velocity = function () { return lenis ? lenis.velocity : 0; };
 
+  // `heading` is the section an anchor jump is on its way to, until it lands or a hand takes over. A width change on
+  // the way (rotation, a resized window) re-aims the jump there; it used to land wherever the old target position fell.
+  // `reaim` holds it through a width change until ScrollTrigger has re-measured, since the jump may end first.
+  var heading = null, reaim = false;
   var scrollToEl = function (el) {
     if (!el) return;
-    if (lenis) lenis.scrollTo(el, { offset: el.id === 'top' ? 0 : -8, duration: 1.6, easing: function (t) { return 1 - Math.pow(1 - t, 4); } });
-    else el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    heading = el;
+    var landed = function () { if (heading === el && !reaim) heading = null; };
+    if (lenis) lenis.scrollTo(el, { offset: el.id === 'top' ? 0 : -8, duration: 1.6, easing: function (t) { return 1 - Math.pow(1 - t, 4); }, onComplete: landed });
+    else { el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }); setTimeout(landed, reduced ? 0 : 1600); }
   };
+  ['wheel', 'touchstart'].forEach(function (t) { window.addEventListener(t, function () { heading = null; reaim = false; }, { passive: true, capture: true }); });
 
   // Overlays (menu, video) hold the page behind them still. Lenis does that while it runs. Under reduced motion it is
   // off, so the document itself is locked instead; until now the page behind kept scrolling.
@@ -150,15 +157,21 @@
     };
     // Keyboard focus in the header holds it down, or Tab would walk through links slid off screen. Only keyboard focus
     // (:focus-visible): a click or tap also leaves focus on the link or button it hit, and holding for that kept the
-    // header, and the bars stuck under it, down for good after any header click or menu close. A wheel, touch, click or
-    // scroll key lets go; the next Tab into the header brings it back.
+    // header, and the bars stuck under it, down for good after any header click or menu close. Scrolling by keyboard
+    // keeps the hold; a wheel, touch or click lets go, and the next Tab into the header brings it back.
     var hold = false;
     var keyFocus = function (el) { try { return el.matches(':focus-visible'); } catch (err) { return true; } };
     nav.addEventListener('focusin', function (e) { if (keyFocus(e.target)) { hold = true; setHidden(false); } });
     nav.addEventListener('focusout', function (e) { if (!e.relatedTarget || !nav.contains(e.relatedTarget)) hold = false; });
     var letGo = function () { hold = false; };
     ['wheel', 'touchstart', 'pointerdown'].forEach(function (t) { window.addEventListener(t, letGo, { passive: true, capture: true }); });
-    window.addEventListener('keydown', function (e) { if (/^(PageDown|PageUp|ArrowDown|ArrowUp|Home|End| )$/.test(e.key)) letGo(); }, true);
+    // A key pressed while focus sits on a link the hidden header took off screen first brings the header back. Enter
+    // or Space then waits for the next press, instead of following a link nobody can see.
+    nav.addEventListener('keydown', function (e) {
+      if (!hidden || e.key === 'Shift' || e.key === 'Tab') { if (e.key === 'Tab') setHidden(false); return; }
+      hold = true; setHidden(false);
+      if (e.key === 'Enter' || e.key === ' ') e.preventDefault();
+    });
     onTick(function () {
       var y = window.scrollY;
       nav.classList.toggle('is-solid', y > 60);
@@ -745,10 +758,13 @@
     var touched = false, demoTween = null, prog = 0, p0 = 0, v0 = null;
     var takeOver = function () { touched = true; if (demoTween) { demoTween.kill(); demoTween = null; } };
     var keep = function () { p0 = prog; v0 = target; };
+    // The line is never steeper than 1.6: a hand close to either end of the pin used to give a near-vertical line, and
+    // a little scroll then threw the value across the range (80 → 9). Where 1.6 can't reach the end in time, leaving
+    // the pin finishes the run (onLeave, onLeaveBack).
     var follow = function (p) {
       if (v0 === null) return p;
-      if (p >= p0) return p0 >= 1 ? v0 : v0 + (p - p0) * (1 - v0) / (1 - p0);
-      return p0 <= 0 ? v0 : v0 * p / p0;
+      var s = p >= p0 ? (p0 >= 1 ? 0 : (1 - v0) / (1 - p0)) : (p0 <= 0 ? 0 : v0 / p0);
+      return v0 + (p - p0) * clamp(s, 0, 1.6);
     };
     fader.addEventListener('pointerdown', function (e) {
       takeOver(); dragging = true; target = fromEvent(e);
@@ -784,7 +800,7 @@
         end: function () { return mobileQ.matches ? '+=0' : '+=140%'; },
         pin: true, scrub: true, anticipatePin: 1, refreshPriority: 1, invalidateOnRefresh: true,
         onUpdate: function (st) { prog = st.progress; if (!dragging && !mobileQ.matches) target = clamp(follow(prog), 0, 1); },
-        onLeave: function () { v0 = null; }, onLeaveBack: function () { v0 = null; }
+        onLeave: function () { v0 = null; if (!dragging) target = 1; }, onLeaveBack: function () { v0 = null; if (!dragging) target = 0; }
       });
       // phones: no scroll travel to drive the fader, so it shows its range once by itself
       var demo = { v: 0 };
@@ -1336,14 +1352,17 @@
   safe('curtains', function () {
     if (!hasGsap || reduced) return;
     $$('.curtain').forEach(function (c, i) {
-      var l = c.querySelector('.curtain__l'), r = c.querySelector('.curtain__r');
+      var l = c.querySelector('.curtain__l'), r = c.querySelector('.curtain__r'), inner = c.querySelector('.curtain__in');
       gsap.set([l, r], { scaleX: 1 });
+      // The content starts dim from the outset. Set only when the curtain began to open, it dropped from full to .4
+      // first, and a line the panels didn't cover (a long list of plays) blinked.
+      gsap.set(inner, { scale: .94, opacity: .4 });
       ScrollTrigger.create({
         trigger: c, start: 'top 80%', once: true,
         onEnter: function () {
           gsap.to(l, { scaleX: 0, skewY: 2, duration: 1.6, ease: 'expo.inOut', delay: i * .15, onComplete: function () { l.style.visibility = 'hidden'; } });
           gsap.to(r, { scaleX: 0, skewY: -2, duration: 1.6, ease: 'expo.inOut', delay: i * .15, onComplete: function () { r.style.visibility = 'hidden'; } });
-          gsap.fromTo(c.querySelector('.curtain__in'), { scale: .94, opacity: .4 }, { scale: 1, opacity: 1, duration: 1.6, ease: 'expo.out', delay: .3 + i * .15 });
+          gsap.to(inner, { scale: 1, opacity: 1, duration: 1.6, ease: 'expo.out', delay: .3 + i * .15 });
         }
       });
     });
@@ -1469,10 +1488,13 @@
     // Both go to the button, never into the frame: keys pressed inside the frame never reach this page, so Esc would
     // stop closing the dialog. Tab from the button still enters the video.
     var box = $('.modal__box', modal), xBtn = $('.modal__x', modal);
+    // Each stop is a real close button, visible to screen readers only, so nothing focusable is hidden from them (a
+    // focusable aria-hidden span fails the aria-hidden-focus rule, and an empty one read as an unnamed item). Focus
+    // landing on it moves to the visible close button; pressing it closes the dialog too.
     var stop = function () {
-      // a focus stop only: hidden from screen readers, so their reading cursor never lands on an empty, unnamed item
-      var s = document.createElement('span'); s.tabIndex = 0; s.className = 'sr-only'; s.setAttribute('aria-hidden', 'true');
+      var s = document.createElement('button'); s.type = 'button'; s.className = 'sr-only'; s.textContent = '영상 닫기';
       s.addEventListener('focus', function () { xBtn.focus(); });
+      s.addEventListener('click', close);
       return s;
     };
     box.insertBefore(stop(), box.firstChild);
@@ -1564,6 +1586,10 @@
   safe('keep-place', function () {
     if (!hasGsap) return;
     var secs = $$('[data-sky]'), mark = null, frozen = false, lastY = -1;
+    // The window's size as far as places go: the width everywhere, and the height too with a mouse (a resized
+    // window changes the range pin's 140% spacer). On touch screens the height changes whenever the address bar
+    // slides, so it is left out there.
+    var size = function () { return window.innerWidth + 'x' + (finePointer ? window.innerHeight : 0); };
     var note = function () {
       var y = window.scrollY, at = null;
       for (var i = 0; i < secs.length; i++) {
@@ -1571,14 +1597,39 @@
         if (r.top <= 1 || !at) at = { el: secs[i], frac: r.height ? clamp(-r.top / r.height, 0, 1) : 0 };
         if (r.top > 1) break;
       }
-      if (at) { at.w = window.innerWidth; at.y = y; mark = at; }
+      // a visitor at the very bottom stays at the bottom, wherever that ends up
+      if (at) { at.w = size(); at.y = y; at.end = y >= document.documentElement.scrollHeight - window.innerHeight - 2; mark = at; }
     };
-    onTick(function () { var y = window.scrollY; if (!frozen && y !== lastY) { lastY = y; note(); } });
-    window.addEventListener('resize', function () { if (mark && window.innerWidth !== mark.w) frozen = true; });
+    // Noted four times a second while scrolling and once when it stops. Noting on every frame read the layout right
+    // after the frame's animations had written to it, a forced layout per frame, and shifted their timing.
+    var notedAt = 0;
+    onTick(function (now) {
+      var y = window.scrollY;
+      if (frozen || y === lastY || now - notedAt < 250) return;
+      lastY = y; notedAt = now; note();
+    });
+    ScrollTrigger.addEventListener('scrollEnd', function () { if (!frozen) { lastY = window.scrollY; note(); } });
+    window.addEventListener('resize', function () {
+      if (!mark || size() === mark.w) return;
+      frozen = true;
+      // A jump on its way is aimed again at once (its section moved with the new width), and once more after the
+      // refresh has re-measured the pins. ScrollTrigger may hold that refresh until the jump stops, and the jump then
+      // ran on to the old target position.
+      if (heading) { reaim = true; if (lenis) lenis.resize(); scrollToEl(heading); }
+    });
     ScrollTrigger.addEventListener('refresh', function () {
-      if (frozen && mark && window.innerWidth !== mark.w) {
+      if (frozen && heading) {
+        // an anchor jump was on its way: aim it again at its section, measured at the new width
+        reaim = false;
+        if (lenis) lenis.resize();
+        scrollToEl(heading);
+        frozen = false; lastY = -1;
+        return;
+      }
+      reaim = false;
+      if (frozen && mark && size() !== mark.w) {
         var r = mark.el.getBoundingClientRect(), top = r.top + window.scrollY;
-        var to = Math.round(top + mark.frac * r.height);
+        var to = mark.end ? document.documentElement.scrollHeight - window.innerHeight : Math.round(top + mark.frac * r.height);
         if (Math.abs(to - window.scrollY) > 2) {
           // Lenis must re-measure first: it still held the old page length, and clamped the jump to that (rotating an
           // iPad back to portrait at the reviews landed in the team section)

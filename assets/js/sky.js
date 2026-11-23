@@ -175,7 +175,7 @@
     if (bg !== painted) { painted = bg; veil.style.background = bg; }
   }
   function useGl(on) {
-    live = on; api.ok = on;
+    live = on; api.ok = on; lastSig = ''; // a new or restored context has nothing drawn yet
     document.documentElement.classList.toggle('no-webgl', !on);
     veil.hidden = on;
     if (on) resize(true); else paintCss();
@@ -186,12 +186,7 @@
     canvas.addEventListener('webglcontextlost', function (e) { e.preventDefault(); useGl(false); });
     canvas.addEventListener('webglcontextrestored', function () { if (setup()) useGl(true); });
   }
-  // Start the shader after the first paint. Measuring the canvas here, while the page was still loading, forced its
-  // first full layout inside this script: a 300ms task before anything showed, and the layout was done again once the
-  // rest of the page had set up. Until then the fallback layer paints the same palette.
-  veil.hidden = false; paintCss();
-  var boot = function () { useGl(!!gl && setup()); };
-  requestAnimationFrame(function () { setTimeout(boot, 0); });
+  useGl(!!gl && setup());
   window.addEventListener('resize', function () { resize(false); });
 
   // reduced motion: the stars and nebula hold still (time stops) and the sky ignores the pointer; the palette still
@@ -204,7 +199,7 @@
     mT[1] = -((e.clientY / window.innerHeight) * 2 - 1);
   }, { passive: true });
 
-  var t0 = performance.now(), frames = 0, acc = 0, lastNow = t0, audioS = 0, tensionS = 0;
+  var t0 = performance.now(), frames = 0, acc = 0, lastNow = t0, audioS = 0, tensionS = 0, lastSig = '';
   function frame(now) {
     requestAnimationFrame(frame);
     if (document.hidden) return;
@@ -226,6 +221,14 @@
     audioS = lerp(audioS, api.audio || 0, .35);
     tensionS = lerp(tensionS, api.tension || 0, .1);
 
+    // Reduced motion: time is frozen, so a frame only differs when the palette, scroll, audio or tension moved.
+    // Redrawing an unchanged sky 60 times a second was work for nothing.
+    if (reduced) {
+      var sig = [W, H, Math.round(window.scrollY), cur.top, cur.bot, cur.glow, cur.ga, cur.stars, cur.neb, cur.sx, cur.sy, cur.sa, cur.sun, audioS, tensionS]
+        .map(function (v) { return Array.isArray(v) ? v.map(function (x) { return x.toFixed(3); }).join(',') : (+v).toFixed(3); }).join('|');
+      if (sig === lastSig) return;
+      lastSig = sig;
+    }
     gl.uniform2f(U.uRes, W, H);
     gl.uniform1f(U.uTime, reduced ? 0 : (now - t0) / 1000);
     gl.uniform2f(U.uMouse, mouse[0], mouse[1]);
