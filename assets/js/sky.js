@@ -186,7 +186,12 @@
     canvas.addEventListener('webglcontextlost', function (e) { e.preventDefault(); useGl(false); });
     canvas.addEventListener('webglcontextrestored', function () { if (setup()) useGl(true); });
   }
-  useGl(!!gl && setup());
+  // Start the shader after the first paint. Measuring the canvas here, while the page was still loading, forced its
+  // first full layout inside this script: a 300ms task before anything showed, and the layout was done again once the
+  // rest of the page had set up. Until then the fallback layer paints the same palette.
+  veil.hidden = false; paintCss();
+  var boot = function () { useGl(!!gl && setup()); };
+  requestAnimationFrame(function () { setTimeout(boot, 0); });
   window.addEventListener('resize', function () { resize(false); });
 
   // reduced motion: the stars and nebula hold still (time stops) and the sky ignores the pointer; the palette still

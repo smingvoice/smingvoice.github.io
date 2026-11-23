@@ -260,7 +260,8 @@
       // reduced motion: time stops for the twinkle, the ripples and the centre pulse, as for the idle drift below
       var t = reduced ? 0 : (now - t0) / 1000;
       if (rotTarget !== null) {
-        rot += (rotTarget - rot) * .06;
+        // reduced motion: a new sample's star is turned to at once instead of swinging round
+        rot = reduced ? rotTarget : rot + (rotTarget - rot) * .06;
         if (Math.abs(rotTarget - rot) < .001) rotTarget = null;
       } else if (!Voice.playing && !reduced) {
         rot += .0007; // idle drift; held still under reduced motion
@@ -446,7 +447,7 @@
       var n = pk.length, bw = W / n, mid = H / 2, lvl = Voice.level;
       for (var i = 0; i < n; i++) {
         var u = i / n, v = pk[i];
-        if (!s) v *= .45 + .25 * Math.sin(now / 600 + i * .3);
+        if (!s) v *= .45 + .25 * Math.sin((reduced ? 0 : now / 600) + i * .3); // idle swell; still under reduced motion
         var near = s && Math.abs(u - prog) < .02 ? lvl * .6 : 0;
         var h = Math.max(1.5, (v + near) * (H * .46));
         g.fillStyle = u <= prog ? col : 'rgba(246,239,228,.24)';
@@ -515,19 +516,23 @@
     if (!mini || !s) return;
     if (type === 'change' || type === 'play') {
       clearTimeout(hideTimer);
-      // A close still sliding out must not finish: replaying within its .35s used to leave the audio playing under a
-      // hidden mini player. Coming back from closed (or new), the player slides in; under reduced motion it just appears.
+      // The player slides in on a new sample, or when it comes back from closed. A close still sliding out must not
+      // finish: replaying within its .35s used to leave the audio playing under a hidden mini player.
+      // The 'play' that follows a 'change' within a millisecond leaves that slide alone. It used to kill it and snap
+      // the player into place, so the entrance lasted one frame.
       var wasAway = mini.hidden || closing;
-      closing = false;
-      if (window.gsap) gsap.killTweensOf(mini);
       mini.hidden = false;
       mini.querySelector('.mini__t').textContent = s.title;
       mini.querySelector('.mini__s').textContent = CATS[s.cat].en + ' · ' + s.tags.join(' · ');
       mini.style.setProperty('--cc', CATS[s.cat].color);
-      if (window.gsap) {
-        if ((type === 'change' || wasAway) && !reduced) gsap.fromTo(mini, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: .6, ease: 'back.out(1.6)' });
+      if (window.gsap && (type === 'change' || wasAway)) {
+        closing = false;
+        gsap.killTweensOf(mini);
+        // under reduced motion it just appears
+        if (!reduced) gsap.fromTo(mini, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: .6, ease: 'back.out(1.6)' });
         else gsap.set(mini, { y: 0, opacity: 1 });
       }
+      closing = false;
     }
     mini.classList.toggle('is-playing', playing);
     miniBtn.setAttribute('aria-label', playing ? '일시정지' : '재생');

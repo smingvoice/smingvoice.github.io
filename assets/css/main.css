@@ -117,7 +117,13 @@ section { position: relative; }
    shows, and if main.js never takes it over (`is-intro`), e.g. a failed load or an early error, it hides after 12s */
 html:not(.js) .intro { display: none; }
 /* without JavaScript the star chart, its player, the photo filters and the photo ring would be empty boxes */
-html:not(.js) .voice__stage, html:not(.js) .filters, html:not(.js) .ring, html:not(.js) .ring__cap { display: none; }
+html:not(.js) .voice__stage, html:not(.js) .filters, html:not(.js) .ring, html:not(.js) .ring__capbox { display: none; }
+/* No JS: the sky never turns to dawn, and the plum text of the light sections sat on the night sky at 1.1:1; each
+   carries its own dawn instead. The fader and the audience need the script and were left as empty shells. */
+html:not(.js) .reviews { background: linear-gradient(#c78da8, #ffd3b0); }
+html:not(.js) .profile { background: linear-gradient(#f1c1b4, #fff0de); }
+html:not(.js) .contact { background: linear-gradient(#ffdcbc, #fff6ea); }
+html:not(.js) .fader, html:not(.js) .crowd { display: none; }
 html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 @keyframes intro-failsafe { to { visibility: hidden; } }
 .intro__canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -271,6 +277,9 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin-top: clamp(56px, 7vw, 96px); padding-inline: 0; width: min(var(--wrap), calc(100% - 2 * var(--gutter))); background: var(--line); border: 1px solid var(--line); border-radius: 22px; overflow: hidden; }
 .stat { background: rgba(8, 12, 34, .72); padding: clamp(22px, 3vw, 36px); display: flex; flex-direction: column; gap: .6rem; }
 .stat__n { font-family: var(--f-latin); font-weight: 300; font-size: clamp(2.4rem, 5vw, 4.4rem); line-height: 1; letter-spacing: -.03em; font-variation-settings: "opsz" 144; color: var(--ivory); font-variant-numeric: tabular-nums; }
+.stat__n.is-counting { -webkit-user-select: none; user-select: none; }
+/* the hero name's spoken copy exists only while its letters rise in; a copy during that time takes the letters alone */
+.hero__ko .sr-only { -webkit-user-select: none; user-select: none; }
 .stat span { font-size: .95rem; color: rgba(246, 239, 228, .86); display: flex; flex-direction: column; }
 .stat small { font-family: var(--f-mono); font-size: .66rem; letter-spacing: .08em; color: var(--mist); margin-top: .2rem; }
 .traits { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 2rem; justify-content: center; }
@@ -340,6 +349,9 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 /* strips that do not slide with the scroll (reduced motion, no GSAP, no JS) scroll sideways by hand instead */
 .daw.is-static .daw__clips, html:not(.js) .daw__clips { flex: 1 1 auto; min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
 .daw.is-static .daw__clips::-webkit-scrollbar, html:not(.js) .daw__clips::-webkit-scrollbar { display: none; }
+/* the still strips don't pass a playhead, so the REC line would only cross out the credits under it */
+.daw.is-static .daw__playhead, html:not(.js) .daw__playhead { display: none; }
+.daw__clips:focus-visible { outline: 2px solid var(--star); outline-offset: -2px; border-radius: 8px; }
 .credits__note { margin-top: 1.2rem; color: var(--mist); font-size: .9rem; max-width: 60em; }
 
 .reels { margin-top: clamp(70px, 9vw, 120px); }
@@ -422,7 +434,9 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 
 .pic { position: relative; overflow: hidden; border-radius: 18px; background: #0d1230; box-shadow: 0 30px 70px -36px rgba(0, 0, 0, .8); }
 .pic img { width: 100%; height: 100%; object-fit: cover; transform-origin: center; }
-.pic figcaption { position: absolute; left: 12px; bottom: 12px; right: 12px; width: max-content; max-width: calc(100% - 24px); padding: .45em .85em; border-radius: 999px; background: rgba(6, 9, 25, .62); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-size: .7rem; color: var(--ivory); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pic figcaption { position: absolute; left: 12px; bottom: 12px; right: 12px; width: max-content; max-width: calc(100% - 24px); padding: .45em .85em; border-radius: 999px; background: rgba(6, 9, 25, .62); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-size: .7rem; line-height: 1.35; color: var(--ivory); border-radius: 14px; }
+/* captions wrap rather than end in "…" (a credit like "사진 데일리게임" was cut off at every width); a 14px radius is
+   still a full pill on one line and a rounded box on two */
 .collage { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-auto-rows: clamp(60px, 7vw, 96px); gap: clamp(12px, 1.6vw, 22px); }
 .pic--a { grid-column: 1 / 5; grid-row: 1 / 8; }
 .pic--b { grid-column: 5 / 13; grid-row: 1 / 5; }
@@ -432,6 +446,7 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 .hl { padding: 1.5rem 1.3rem 1.6rem; border-radius: 18px; border: 1px solid var(--line); background: rgba(8, 12, 34, .46); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); display: flex; flex-direction: column; gap: .6rem; transition: border-color .4s, transform .6s var(--ease), background .4s; }
 .hl:hover { border-color: rgba(255, 226, 166, .55); transform: translateY(-4px); background: rgba(12, 18, 48, .6); }
 .hl__t { color: var(--star); font-size: .72rem; }
+.hl__t:empty::before { content: "\a0"; } /* no tag on her sheet for this one: keep the line so the titles line up */
 .hl h3 { font-family: var(--f-display); font-weight: 600; font-size: 1.08rem; line-height: 1.45; letter-spacing: -.02em; }
 .hl__v { margin-top: auto; font-size: .82rem; color: var(--mist); display: flex; align-items: center; gap: .5em; }
 .hl__v::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--star); box-shadow: 0 0 8px var(--star); flex-shrink: 0; }
@@ -586,8 +601,17 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 .ring__item { position: absolute; left: 0; top: 0; width: var(--iw, 300px); height: var(--ih, 400px); margin: calc(var(--ih, 400px) / -2) 0 0 calc(var(--iw, 300px) / -2); border-radius: 18px; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; box-shadow: 0 30px 60px -30px rgba(0, 0, 0, .8); background: #1a1440; }
 .ring__item img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; -webkit-user-drag: none; }
 .ring__item::after { content: ""; position: absolute; inset: 0; background: rgba(20, 8, 40, var(--dim, 0)); pointer-events: none; }
-.ring__hint { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); color: var(--mist); font-size: .62rem; }
-.ring__cap { display: table; margin: 1.2rem auto 0; padding: .6em 1.2em; border-radius: 999px; background: rgba(20, 8, 40, .55); color: var(--ivory); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); text-align: center; max-width: calc(100% - 2 * var(--gutter)); }
+/* the hint sat bare on the sky at 1.0–1.4:1; on touch screens it is the only sign the ring turns */
+.ring__hint { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); color: var(--ivory); font-size: .62rem; padding: .35em .9em; border-radius: 999px; background: rgba(20, 8, 40, .7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+/* Every caption sits in one grid cell over hidden copies of all the others, so the box keeps the tallest one's height.
+   It used to grow and shrink as the ring turned between one-line and two-line captions, shifting the reviews below by
+   18px each time. */
+.ring__capbox { display: grid; align-items: start; width: calc(100% - 2 * var(--gutter)); margin: 1.2rem auto 0; }
+/* each caption starts from the middle and is pulled back by half its width, so a wider or narrower caption never
+   moves its layout box sideways (that still counted as a small layout shift) */
+.ring__capbox > * { grid-area: 1 / 1; justify-self: start; position: relative; left: 50%; transform: translateX(-50%); }
+.ring__cap--sizer { visibility: hidden; }
+.ring__cap { display: block; margin: 0; padding: .6em 1.2em; border-radius: 999px; background: rgba(20, 8, 40, .55); color: var(--ivory); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); text-align: center; max-width: 100%; }
 .ring__cap:empty { visibility: hidden; }
 
 /* ---------- reviews (light) ---------- */
@@ -596,7 +620,9 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 /* the dawn behind reviews and profile is still dark rose (#c78da8 at its top): the small labels there take a deeper
    rust and the lead a deeper plum to reach 4.5:1 (they were 2.37–3.89:1); contact's pale sky keeps the amber */
 .reviews .eyebrow, .profile .eyebrow { color: #5c2406; }
-.contact .eyebrow { color: #a5561a; }
+/* the amber labels (here and in profile, contact, the curtains and the card back) were #a5561a: 3.5–4.4:1 where they
+   sit high on the screen, over the darker rose top of the dawn sky. #80400f keeps the hue and clears 4.5:1 there. */
+.contact .eyebrow { color: #80400f; }
 .reviews__grid { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: clamp(32px, 6vw, 96px); align-items: start; }
 .reviews__head { position: sticky; top: calc(var(--stick-top) + 40px); transition: top .5s var(--ease); display: grid; gap: 1.2rem; }
 .reviews__head .eyebrow { margin-bottom: 0; }
@@ -630,20 +656,20 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 .profile__fig figcaption { position: absolute; left: 16px; bottom: 16px; padding: .45em .85em; border-radius: 999px; background: rgba(255, 250, 244, .8); color: var(--plum); font-size: .6rem; }
 .profile__body .h2 { font-weight: 700; letter-spacing: .08em; }
 .cv { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(16px, 2.6vw, 36px); margin-top: 2.4rem; }
-.cv__h { color: #a5561a; padding-bottom: .8rem; margin-bottom: .6rem; border-bottom: 1px solid rgba(37, 22, 62, .2); font-weight: 500; }
+.cv__h { color: #80400f; padding-bottom: .8rem; margin-bottom: .6rem; border-bottom: 1px solid rgba(37, 22, 62, .2); font-weight: 500; }
 .cv li { padding: .5rem 0; font-size: .92rem; line-height: 1.55; border-bottom: 1px solid rgba(37, 22, 62, .08); }
 .skills { margin-top: 2.2rem; padding: 1.2rem 1.4rem; border-radius: 16px; background: rgba(255, 250, 244, .55); font-size: .94rem; line-height: 1.7; }
-.skills .mono { color: #a5561a; margin-right: .8em; }
+.skills .mono { color: #80400f; margin-right: .8em; }
 .more { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(14px, 2vw, 26px); margin-top: clamp(80px, 10vw, 140px); }
 .curtain { position: relative; border-radius: 22px; overflow: hidden; min-height: 380px; background: #fffaf3; box-shadow: 0 30px 70px -45px rgba(60, 20, 60, .6); }
 .curtain__in { position: relative; padding: 2rem 1.7rem; display: flex; flex-direction: column; gap: .8rem; height: 100%; }
-.curtain__k { color: #a5561a; }
+.curtain__k { color: #80400f; }
 .curtain h3 { font-family: var(--f-display); font-weight: 700; font-size: 1.35rem; letter-spacing: -.02em; }
 .curtain ul { display: grid; gap: .5rem; font-size: .9rem; line-height: 1.55; color: #3b2c4c; }
 .curtain li { padding-left: 1em; position: relative; }
 .curtain li::before { content: "·"; position: absolute; left: 0; color: #c07a2a; }
 .plays li em { font-style: normal; color: var(--plum-2); font-size: .82rem; margin-left: .3em; }
-.curtain .link { margin-top: auto; align-self: flex-start; color: #a5561a; }
+.curtain .link { margin-top: auto; align-self: flex-start; color: #80400f; }
 .curtain__l, .curtain__r { position: absolute; top: 0; bottom: 0; width: 51%; z-index: 2; pointer-events: none; background: repeating-linear-gradient(90deg, #7a1328 0 14px, #94203a 14px 26px, #6a0f22 26px 34px); box-shadow: inset 0 -30px 40px rgba(0, 0, 0, .35); }
 .curtain__l { left: 0; transform-origin: left; transform: scaleX(0); }
 .curtain__r { right: 0; transform-origin: right; transform: scaleX(0); }
@@ -657,7 +683,7 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 .contact__lead { margin-top: 1.6rem; color: var(--plum-2); max-width: 34em; }
 .contact__list { margin: 2.2rem 0; border-top: 1px solid rgba(37, 22, 62, .18); }
 .contact__list li { display: grid; grid-template-columns: 86px minmax(0, 1fr) auto; align-items: center; gap: .4rem 1rem; padding: 1rem 0; border-bottom: 1px solid rgba(37, 22, 62, .12); }
-.contact__list .mono { color: #a5561a; font-size: .64rem; }
+.contact__list .mono { color: #80400f; font-size: .64rem; }
 .contact__v { font-size: clamp(1.05rem, 1.6vw, 1.3rem); font-weight: 600; letter-spacing: -.01em; user-select: all; }
 .contact__v--sub { grid-column: 2; font-size: .95rem; font-weight: 400; color: var(--plum-2); user-select: auto; }
 .contact__hint { margin-top: .9rem; color: var(--plum-2); font-size: .74rem; }
@@ -677,7 +703,7 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
 .card3d__back { transform: rotateY(180deg); background: linear-gradient(170deg, #fffaf2, #f3e6d2); color: var(--plum); display: flex; flex-direction: column; }
 .card3d__back img { height: 58%; width: auto; margin: 1.4rem auto 0; object-fit: contain; object-position: bottom; }
 .card3d__back dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .5rem 1rem; padding: 1.4rem 1.6rem; margin-top: auto; border-top: 1px solid rgba(37, 22, 62, .12); background: #fffdf8; }
-.card3d__back dt { color: #a5561a; font-size: .58rem; align-self: center; }
+.card3d__back dt { color: #80400f; font-size: .58rem; align-self: center; }
 .card3d__back dd { font-size: .9rem; font-weight: 500; }
 .card3d__foil { position: absolute; inset: 0; border-radius: 26px; pointer-events: none; mix-blend-mode: color-dodge; opacity: .55; background: radial-gradient(circle at var(--mx, 50%) var(--my, 30%), rgba(255, 255, 255, .55), transparent 40%), linear-gradient(115deg, transparent 20%, rgba(255, 160, 200, .35) 35%, rgba(160, 220, 255, .35) 50%, rgba(255, 236, 160, .35) 65%, transparent 80%); background-size: 100% 100%, 220% 220%; background-position: center, var(--fx, 50%) 50%; transform: translateZ(1px); }
 
@@ -825,7 +851,9 @@ html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
   .hero__cta { margin-top: 1.2rem; }
 }
 @media (max-width: 560px) {
-  .pic figcaption { white-space: normal; border-radius: 12px; line-height: 1.35; }
+  /* small photos: the caption runs as a band along the bottom edge, full width and smaller, so it takes two lines
+     instead of three and no longer covers half the picture */
+  .pic figcaption { left: 0; right: 0; bottom: 0; width: auto; max-width: none; padding: .9em .8em .5em; border-radius: 0; font-size: .62rem; line-height: 1.3; background: linear-gradient(rgba(6, 9, 25, 0), rgba(6, 9, 25, .84) 30%); backdrop-filter: none; -webkit-backdrop-filter: none; }
   /* a long credit wraps to two lines rather than running wider than the strip's visible part beside its label */
   .daw__clips li { white-space: normal; max-width: 220px; height: auto; min-height: 34px; padding: 6px 12px; line-height: 1.25; }
   .hero__title { font-size: clamp(2.1rem, 10vw, 2.8rem); }
