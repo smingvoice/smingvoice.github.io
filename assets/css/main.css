@@ -24,14 +24,16 @@
   --wrap: 1240px;
   --gutter: clamp(16px, 4vw, 48px);
   --nav-h: 68px;
+  /* where sticky bars stop: under the header, or at the top edge while the header is slid away (html.nav-hidden) */
+  --stick-top: calc(var(--nav-h) + env(safe-area-inset-top, 0px));
   --ease: cubic-bezier(.16, 1, .3, 1);
 }
+html.nav-hidden { --stick-top: env(safe-area-inset-top, 0px); }
 
 /* ---------- base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 html.lenis, html.lenis body { height: auto; }
-.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
 .lenis.lenis-stopped { overflow: clip; }
 body {
   margin: 0;
@@ -54,11 +56,15 @@ h1, h2, h3, p, figure, blockquote, dl, dd { margin: 0; }
 :focus-visible { outline: 2px solid var(--star); outline-offset: 3px; border-radius: 4px; }
 ::selection { background: var(--star); color: var(--ink); }
 [hidden] { display: none !important; }
+/* read by screen readers, not drawn (the whole name or headline next to its letter-by-letter animation) */
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+/* overlays hold the page still when Lenis is off (reduced motion); see lockScroll in main.js */
+html.is-locked { overflow: hidden; }
 
 .wrap { width: 100%; max-width: calc(var(--wrap) + var(--gutter) * 2); margin-inline: auto; padding-inline: var(--gutter); }
 .mono { font-family: var(--f-mono); font-size: .74rem; letter-spacing: .14em; text-transform: uppercase; line-height: 1.5; }
 /* Korean labels: mono tracking pulls Hangul syllables apart, so these use Pretendard with tight spacing */
-.mono:is(.t, .reel__k, .msg__who, .poster__g, .daw__label, .hl__t, .strength__k, .cv__h, .copy, .chart__hint, .legend, .fader__ticks, .ledger__more, .vfeature__cta, .clients__cert, .contact__hint, .filters, .stages__nav, .traits, .link), .pic figcaption, .range__photos figcaption, .clients__list em, .pull cite, .feature__copy p.mono, .skills .mono { font-family: var(--f-body); letter-spacing: .01em; text-transform: none; font-weight: 500; }
+.mono:is(.t, .reel__k, .msg__who, .poster__g, .daw__label, .hl__t, .strength__k, .cv__h, .copy, .chart__hint, .legend, .fader__ticks, .vfeature__cta, .clients__cert, .contact__hint, .filters, .stages__nav, .traits, .link), .pic figcaption, .range__photos figcaption, .clients__list em, .pull cite, .feature__copy p.mono, .skills .mono { font-family: var(--f-body); letter-spacing: .01em; text-transform: none; font-weight: 500; }
 .eyebrow { display: inline-flex; align-items: center; gap: .7em; color: var(--star); margin-bottom: 1.6rem; }
 .h2 { font-family: var(--f-display); font-weight: 700; font-size: clamp(2rem, 4.4vw, 4rem); line-height: 1.2; letter-spacing: -.03em; text-wrap: balance; }
 .h2 em { font-style: normal; color: var(--star); }
@@ -96,6 +102,8 @@ section { position: relative; }
 
 /* ---------- sky & grain ---------- */
 #sky { position: fixed; inset: 0; width: 100%; height: 100vh; height: 100lvh; z-index: 0; display: block; background: linear-gradient(#04061a, #101a46); }
+/* sky.js paints the CSS fallback sky here whenever WebGL is off or lost; a lost context's opaque canvas hid the old one */
+#sky-css { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
 .grain {
   position: fixed; inset: -50%; z-index: 1; pointer-events: none; opacity: .07; mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
@@ -105,6 +113,25 @@ section { position: relative; }
 
 /* ---------- intro ---------- */
 .intro { position: fixed; inset: 0; z-index: 200; background: #04061a; display: grid; place-items: center; color: var(--ivory); clip-path: circle(150% at 50% 50%); }
+/* only main.js dismisses the intro, so it must not depend on main.js to get out of the way: without JS it never
+   shows, and if main.js never takes it over (`is-intro`), e.g. a failed load or an early error, it hides after 12s */
+html:not(.js) .intro { display: none; }
+/* without JavaScript the star chart, its player, the photo filters and the photo ring would be empty boxes */
+html:not(.js) .voice__stage, html:not(.js) .filters, html:not(.js) .ring, html:not(.js) .ring__capbox { display: none; }
+/* No JS: the sky never turns to dawn, and the plum text of the light sections sat on the night sky at 1.1:1; each
+   carries its own dawn instead. The fader and the audience need the script and were left as empty shells. */
+html:not(.js) .reviews { background: linear-gradient(#c78da8, #ffd3b0); }
+html:not(.js) .profile { background: linear-gradient(#f1c1b4, #fff0de); }
+html:not(.js) .contact { background: linear-gradient(#ffdcbc, #fff6ea); }
+html:not(.js) .fader, html:not(.js) .crowd { display: none; }
+html:not(.js) .foot { background: #fff6ea; }
+/* Without the script the header never switches to its light style, so its ivory logo and links went pale on the
+   light sections (1.1–2.3:1). It keeps the dark bar it has on the night sky; the cue rail, which only the script
+   moves, is left out. */
+html:not(.js) .nav { background: rgba(7, 10, 30, .82); backdrop-filter: blur(14px) saturate(1.3); -webkit-backdrop-filter: blur(14px) saturate(1.3); border-color: var(--line); }
+html:not(.js) .cues { display: none; }
+html:not(.is-intro) .intro { animation: intro-failsafe 0s 12s forwards; }
+@keyframes intro-failsafe { to { visibility: hidden; } }
 .intro__canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .intro__top { position: absolute; top: calc(22px + env(safe-area-inset-top, 0px)); left: var(--gutter); right: var(--gutter); display: flex; justify-content: space-between; color: var(--mist); }
 .intro__status { color: var(--star); animation: blink 1s steps(2) infinite; }
@@ -159,11 +186,16 @@ section { position: relative; }
 .nav__menu[aria-expanded="true"] span:first-child { top: 21px; transform: rotate(45deg); }
 .nav__menu[aria-expanded="true"] span:last-child { top: 21px; transform: rotate(-45deg); }
 
-.menu { position: fixed; inset: 0; z-index: 55; background: rgba(6, 9, 25, .96); backdrop-filter: blur(10px); display: flex; flex-direction: column; justify-content: center; padding: calc(var(--nav-h) + 20px) var(--gutter) 40px; clip-path: circle(0 at calc(100% - 44px) 34px); }
-.menu__links { display: grid; gap: .2rem; }
+/* The panel holds still; only .menu__scroll scrolls, and it starts below the header bar. When the whole panel scrolled,
+   phones held sideways ran the items up under the see-through header and over the logo. The list is centred with auto
+   margins rather than justify-content: when it is taller than the screen the margins shrink to 0 and it scrolls from
+   its top, where centring pushed both ends out of reach. */
+.menu { position: fixed; inset: 0; z-index: 55; background: rgba(6, 9, 25, .96); backdrop-filter: blur(10px); clip-path: circle(0 at calc(100% - 44px) 34px); }
+.menu__scroll { position: absolute; inset: calc(var(--nav-h) + env(safe-area-inset-top, 0px)) 0 0; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; padding: 20px var(--gutter) 40px; }
+.menu__links { display: grid; gap: .2rem; margin-top: auto; }
 .menu__links a { display: flex; align-items: baseline; gap: 1rem; font-family: var(--f-display); font-weight: 600; font-size: clamp(1.7rem, 7vw, 2.6rem); line-height: 1.35; letter-spacing: -.03em; }
 .menu__links small { color: var(--star); font-size: .7rem; }
-.menu__foot { color: var(--mist); margin-top: 2.4rem; }
+.menu__foot { color: var(--mist); margin-top: 2.4rem; margin-bottom: auto; }
 
 /* ---------- cue sheet rail ---------- */
 .cues { position: fixed; right: 10px; top: 50%; transform: translateY(-50%); z-index: 40; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; pointer-events: none; transition: color .4s, opacity .4s; }
@@ -251,6 +283,9 @@ section { position: relative; }
 .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin-top: clamp(56px, 7vw, 96px); padding-inline: 0; width: min(var(--wrap), calc(100% - 2 * var(--gutter))); background: var(--line); border: 1px solid var(--line); border-radius: 22px; overflow: hidden; }
 .stat { background: rgba(8, 12, 34, .72); padding: clamp(22px, 3vw, 36px); display: flex; flex-direction: column; gap: .6rem; }
 .stat__n { font-family: var(--f-latin); font-weight: 300; font-size: clamp(2.4rem, 5vw, 4.4rem); line-height: 1; letter-spacing: -.03em; font-variation-settings: "opsz" 144; color: var(--ivory); font-variant-numeric: tabular-nums; }
+.stat__n.is-counting { -webkit-user-select: none; user-select: none; }
+/* the hero name's spoken copy exists only while its letters rise in; a copy during that time takes the letters alone */
+.hero__ko .sr-only { -webkit-user-select: none; user-select: none; }
 .stat span { font-size: .95rem; color: rgba(246, 239, 228, .86); display: flex; flex-direction: column; }
 .stat small { font-family: var(--f-mono); font-size: .66rem; letter-spacing: .08em; color: var(--mist); margin-top: .2rem; }
 .traits { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 2rem; justify-content: center; }
@@ -317,6 +352,12 @@ section { position: relative; }
 .daw__clips { display: flex; gap: 8px; padding-left: 130px; will-change: transform; }
 .daw__clips li { flex-shrink: 0; height: 34px; display: flex; align-items: center; padding: 0 14px; border-radius: 8px; font-size: .82rem; white-space: nowrap; background: rgba(158, 197, 255, .08); border: 1px solid rgba(158, 197, 255, .18); color: rgba(246, 239, 228, .86); transition: background .3s, border-color .3s, color .3s, box-shadow .3s; }
 .daw__clips li.is-hot { background: rgba(255, 226, 166, .18); border-color: var(--star); color: #fff; box-shadow: 0 0 22px -4px rgba(255, 226, 166, .6); }
+/* strips that do not slide with the scroll (reduced motion, no GSAP, no JS) scroll sideways by hand instead */
+.daw.is-static .daw__clips, html:not(.js) .daw__clips { flex: 1 1 auto; min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
+.daw.is-static .daw__clips::-webkit-scrollbar, html:not(.js) .daw__clips::-webkit-scrollbar { display: none; }
+/* the still strips don't pass a playhead, so the REC line would only cross out the credits under it */
+.daw.is-static .daw__playhead, html:not(.js) .daw__playhead { display: none; }
+.daw__clips:focus-visible { outline: 2px solid var(--star); outline-offset: -2px; border-radius: 8px; }
 .credits__note { margin-top: 1.2rem; color: var(--mist); font-size: .9rem; max-width: 60em; }
 
 .reels { margin-top: clamp(70px, 9vw, 120px); }
@@ -354,23 +395,26 @@ section { position: relative; }
 .range__mode { color: var(--star); }
 .range__title { font-family: var(--f-display); font-weight: 700; font-size: clamp(1.5rem, 2.4vw, 2.1rem); letter-spacing: -.03em; line-height: 1.3; margin: .7rem 0 .8rem; }
 .range__desc { color: rgba(246, 239, 228, .8); min-height: 5.2em; }
-.fader { position: relative; height: 84px; margin-top: 4px; touch-action: none; cursor: grab; outline-offset: 8px; }
+/* The 40px knob travels along the track, and the track (with its ticks) is inset by the knob's radius, so the knob never
+   leaves the fader's box. Centred on bare ends, half the knob stuck out at 100%, and inside a 16px phone gutter that
+   widened the page by 4px. */
+.fader { --knob-r: 20px; position: relative; height: 84px; margin-top: 4px; touch-action: none; cursor: grab; outline-offset: 8px; }
 .fader:active { cursor: grabbing; }
-.fader__track { position: absolute; left: 0; right: 0; top: 22px; height: 4px; border-radius: 4px; background: rgba(246, 239, 228, .14); }
+.fader__track { position: absolute; left: var(--knob-r); right: var(--knob-r); top: 22px; height: 4px; border-radius: 4px; background: rgba(246, 239, 228, .14); }
 .fader__fill { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; transform-origin: left; transform: scaleX(0); border-radius: inherit; background: linear-gradient(90deg, var(--star), var(--dawn)); box-shadow: 0 0 18px rgba(255, 159, 176, .5); }
-.fader__ticks { position: absolute; left: 0; right: 0; top: 44px; display: flex; justify-content: space-between; color: var(--mist); font-size: .74rem; }
+.fader__ticks { position: absolute; left: var(--knob-r); right: var(--knob-r); top: 44px; display: flex; justify-content: space-between; color: var(--mist); font-size: .74rem; }
 .fader__ticks span { position: relative; transition: color .3s; }
 .fader__ticks span::before { content: ""; position: absolute; top: -18px; left: 50%; width: 1px; height: 8px; background: currentColor; }
 .fader__ticks span:first-child::before { left: 0; }
 .fader__ticks span:last-child::before { left: auto; right: 0; }
 .fader__ticks span.is-on { color: var(--star); }
-.fader__knob { position: absolute; top: 4px; left: 0; width: 40px; height: 40px; margin-left: -20px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, var(--star) 60%, #e0a050); box-shadow: 0 0 0 6px rgba(255, 226, 166, .14), 0 0 30px rgba(255, 226, 166, .6); display: grid; place-items: center; }
+.fader__knob { position: absolute; top: 4px; left: var(--knob-r); width: 40px; height: 40px; margin-left: -20px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, var(--star) 60%, #e0a050); box-shadow: 0 0 0 6px rgba(255, 226, 166, .14), 0 0 30px rgba(255, 226, 166, .6); display: grid; place-items: center; }
 .fader__knob span { position: absolute; top: -22px; font-size: .55rem; color: var(--star); white-space: nowrap; }
 
 /* ---------- stages ---------- */
 .stages { position: relative; }
 .stages__nav {
-  position: sticky; top: calc(var(--nav-h) + 10px); z-index: 30; margin: 0 auto; width: max-content; max-width: calc(100% - 2 * var(--gutter));
+  position: sticky; top: calc(var(--stick-top) + 10px); transition: top .5s var(--ease); z-index: 30; margin: 0 auto; width: max-content; max-width: calc(100% - 2 * var(--gutter));
   display: flex; gap: 4px; padding: 5px; border-radius: 999px; background: rgba(8, 12, 34, .62); border: 1px solid var(--line);
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); font-size: .66rem; overflow-x: auto; scrollbar-width: none;
 }
@@ -385,13 +429,20 @@ section { position: relative; }
 .stage__title { display: flex; flex-direction: column; gap: .6rem; }
 .stage__en { font-family: var(--f-latin); font-weight: 200; font-size: clamp(3.2rem, 11.5vw, 11.5rem); line-height: .88; letter-spacing: -.045em; font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0; display: block; margin-left: -.04em; }
 .stage__en .ch { display: inline-block; will-change: transform; }
+/* The letters rise into place out of a mask at the title's bottom edge; they no longer slide down over the Korean
+   subtitle. Since a3b7dcf the subtitles run long enough to sit under "g" and "y", which crossed them mid-scrub and on
+   the way back up, and at rest cut 4–5px into them. The padding makes room for descenders below the tight line, and
+   the clip trims only the bottom edge, so the tops and the tilt are never cut. */
+.stage__en[data-axis] { padding-bottom: .2em; clip-path: inset(-.4em -.3em 0 -.3em); }
 .stage__ko { font-family: var(--f-display); font-weight: 600; font-size: clamp(1.4rem, 2.6vw, 2.3rem); letter-spacing: -.02em; color: var(--star); }
 .stage__pitch { font-size: clamp(1.05rem, 1.5vw, 1.3rem); color: rgba(246, 239, 228, .82); max-width: 36em; line-height: 1.65; }
 .stage__pitch b { color: var(--ivory); font-weight: 600; }
 
 .pic { position: relative; overflow: hidden; border-radius: 18px; background: #0d1230; box-shadow: 0 30px 70px -36px rgba(0, 0, 0, .8); }
 .pic img { width: 100%; height: 100%; object-fit: cover; transform-origin: center; }
-.pic figcaption { position: absolute; left: 12px; bottom: 12px; right: 12px; width: max-content; max-width: calc(100% - 24px); padding: .45em .85em; border-radius: 999px; background: rgba(6, 9, 25, .62); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-size: .7rem; color: var(--ivory); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pic figcaption { position: absolute; left: 12px; bottom: 12px; right: 12px; width: max-content; max-width: calc(100% - 24px); padding: .45em .85em; background: rgba(6, 9, 25, .62); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-size: .7rem; line-height: 1.35; color: var(--ivory); border-radius: 14px; }
+/* captions wrap rather than end in "…" (a credit like "사진 데일리게임" was cut off at every width); a 14px radius is
+   still a full pill on one line and a rounded box on two */
 .collage { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-auto-rows: clamp(60px, 7vw, 96px); gap: clamp(12px, 1.6vw, 22px); }
 .pic--a { grid-column: 1 / 5; grid-row: 1 / 8; }
 .pic--b { grid-column: 5 / 13; grid-row: 1 / 5; }
@@ -401,6 +452,7 @@ section { position: relative; }
 .hl { padding: 1.5rem 1.3rem 1.6rem; border-radius: 18px; border: 1px solid var(--line); background: rgba(8, 12, 34, .46); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); display: flex; flex-direction: column; gap: .6rem; transition: border-color .4s, transform .6s var(--ease), background .4s; }
 .hl:hover { border-color: rgba(255, 226, 166, .55); transform: translateY(-4px); background: rgba(12, 18, 48, .6); }
 .hl__t { color: var(--star); font-size: .72rem; }
+.hl__t:empty::before { content: "\a0"; } /* no tag on her sheet for this one: keep the line so the titles line up */
 .hl h3 { font-family: var(--f-display); font-weight: 600; font-size: 1.08rem; line-height: 1.45; letter-spacing: -.02em; }
 .hl__v { margin-top: auto; font-size: .82rem; color: var(--mist); display: flex; align-items: center; gap: .5em; }
 .hl__v::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--star); box-shadow: 0 0 8px var(--star); flex-shrink: 0; }
@@ -416,10 +468,6 @@ section { position: relative; }
 .ledger__list .t { color: var(--mist); font-size: .74rem; }
 .ledger__list .n { font-size: 1.02rem; }
 .ledger__list .v { font-size: .78rem; color: var(--star); text-align: right; }
-.ledger__list li.is-extra { display: none; }
-.ledger.is-open .ledger__list li.is-extra { display: grid; }
-.ledger__more { margin-top: 1.4rem; padding: .9em 1.6em; border-radius: 999px; border: 1px solid var(--line); color: var(--ivory); transition: border-color .3s, background .3s; }
-.ledger__more:hover { border-color: var(--star); background: rgba(255, 226, 166, .08); }
 
 /* ---------- VIP ---------- */
 .route { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); row-gap: clamp(28px, 4vw, 60px); column-gap: clamp(40px, 10vw, 160px); padding-block: 20px; }
@@ -475,13 +523,12 @@ section { position: relative; }
 .rec__lead { color: rgba(246, 239, 228, .82); }
 .rec__lead b { color: var(--star); font-weight: 700; }
 .rec__body { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: clamp(24px, 4vw, 56px); margin-top: clamp(32px, 4vw, 56px); align-items: start; }
-.crowd { position: relative; aspect-ratio: 4 / 3; border-radius: 24px; overflow: hidden; background: radial-gradient(ellipse at 50% 120%, rgba(255, 159, 176, .28), transparent 60%), rgba(6, 9, 25, .6); border: 1px solid var(--line); }
+.crowd { position: sticky; top: calc(var(--stick-top) + 74px); transition: top .5s var(--ease); aspect-ratio: 4 / 3; border-radius: 24px; overflow: hidden; background: radial-gradient(ellipse at 50% 120%, rgba(255, 159, 176, .28), transparent 60%), rgba(6, 9, 25, .6); border: 1px solid var(--line); }
 .crowd__canvas { width: 100%; height: 100%; display: block; }
 .crowd__count { position: absolute; left: 22px; top: 18px; display: flex; flex-direction: column; }
 .crowd__n { font-family: var(--f-latin); font-weight: 300; font-size: clamp(2.6rem, 5vw, 4.6rem); line-height: 1; font-variation-settings: "opsz" 144; font-variant-numeric: tabular-nums; }
 .crowd__label { color: var(--star); margin-top: .4rem; }
-.rec__list { max-height: 520px; overflow: auto; padding-right: 6px; scrollbar-width: thin; scrollbar-color: rgba(246, 239, 228, .2) transparent; }
-.rec__list li { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: .8rem; align-items: center; padding: .75rem .6rem; border-bottom: 1px solid var(--line); cursor: pointer; border-radius: 8px; position: relative; isolation: isolate; transition: background .3s; }
+.rec__list li { display: grid; grid-template-columns: 92px minmax(0, 1fr) auto; gap: .8rem; align-items: center; padding: .75rem .6rem; border-bottom: 1px solid var(--line); cursor: pointer; border-radius: 8px; position: relative; isolation: isolate; transition: background .3s; }
 .rec__list li::after { content: ""; position: absolute; left: 0; bottom: -1px; height: 2px; width: calc(var(--p, 0) * 100%); background: linear-gradient(90deg, var(--star), var(--dawn)); opacity: .6; }
 .rec__list li:hover, .rec__list li.is-on { background: rgba(255, 255, 255, .06); }
 .rec__list li.is-on .n { color: var(--star); }
@@ -521,6 +568,8 @@ section { position: relative; }
 .poster::before { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(circle at var(--px, 70%) var(--py, 20%), rgba(255, 255, 255, .28), transparent 45%); opacity: .8; transition: opacity .4s; }
 .poster::after { content: "✦"; position: absolute; top: .9rem; right: 1rem; font-size: 1.1rem; color: rgba(255, 255, 255, .8); }
 .poster:hover { transform: translateY(-8px) rotate(-1deg); box-shadow: 0 36px 70px -24px rgba(0, 0, 0, .9); }
+/* set by main.js when GSAP drives the transform (entrance, tilt, lift): a CSS transform transition would fight every frame */
+.poster.is-gsap { transition: box-shadow .6s; }
 .poster__g { position: absolute; top: 1rem; left: 1.1rem; font-size: .7rem; padding: .35em .7em; border-radius: 999px; background: rgba(0, 0, 0, .28); }
 .poster h3 { font-family: var(--f-display); font-weight: 700; font-size: clamp(.98rem, 1.25vw, 1.12rem); line-height: 1.4; letter-spacing: -.02em; }
 .poster p:last-child { font-size: .76rem; line-height: 1.5; color: rgba(255, 255, 255, .78); }
@@ -534,6 +583,11 @@ section { position: relative; }
 .poster:nth-child(8) { --pbg: linear-gradient(165deg, #b0513a, #3a1b24); }
 .poster:nth-child(9) { --pbg: linear-gradient(165deg, #3b6fd8, #121c4a); }
 .poster:nth-child(10) { --pbg: linear-gradient(165deg, #8f4bd8, #241246); }
+.poster:nth-child(11) { --pbg: linear-gradient(165deg, #3fa7b5, #123248); }
+.poster:nth-child(12) { --pbg: linear-gradient(165deg, #d6407a, #3b1446); }
+.poster:nth-child(13) { --pbg: linear-gradient(165deg, #5a7be0, #1c1850); }
+.poster:nth-child(14) { --pbg: linear-gradient(165deg, #e0a23a, #4a2a18); }
+.poster:nth-child(15) { --pbg: linear-gradient(165deg, #4fae7a, #123a2c); }
 .vmc__media { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, .65fr) minmax(0, .55fr); gap: clamp(12px, 1.6vw, 22px); margin-top: clamp(60px, 8vw, 110px); align-items: end; }
 .vmc__media .pic--wide { aspect-ratio: 16 / 10; }
 .vmc__media .pic--tall { aspect-ratio: 3 / 4; }
@@ -547,24 +601,38 @@ section { position: relative; }
 .filters button { padding: .7em 1.15em; border-radius: 999px; border: 1px solid var(--line); color: var(--mist); font-size: .76rem; transition: all .35s; }
 .filters button:hover { color: var(--ivory); border-color: rgba(246, 239, 228, .5); }
 .filters button.is-on { background: var(--ivory); color: var(--ink); border-color: var(--ivory); }
-.ring { position: relative; height: clamp(380px, 52vw, 640px); margin-top: clamp(30px, 5vw, 60px); perspective: 1000px; perspective-origin: 50% 50%; cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.ring { position: relative; height: clamp(380px, 52vw, 640px); height: min(clamp(380px, 52vw, 640px), calc(100svh - var(--nav-h) - 24px)); margin-top: clamp(30px, 5vw, 60px); perspective: 1000px; perspective-origin: 50% 50%; cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .ring:active { cursor: grabbing; }
 .ring__stage { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; }
 .ring__item { position: absolute; left: 0; top: 0; width: var(--iw, 300px); height: var(--ih, 400px); margin: calc(var(--ih, 400px) / -2) 0 0 calc(var(--iw, 300px) / -2); border-radius: 18px; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; box-shadow: 0 30px 60px -30px rgba(0, 0, 0, .8); background: #1a1440; }
 .ring__item img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; -webkit-user-drag: none; }
 .ring__item::after { content: ""; position: absolute; inset: 0; background: rgba(20, 8, 40, var(--dim, 0)); pointer-events: none; }
-.ring__hint { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); color: var(--mist); font-size: .62rem; }
-.ring__cap { display: table; margin: 1.2rem auto 0; padding: .6em 1.2em; border-radius: 999px; background: rgba(20, 8, 40, .55); color: var(--ivory); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); text-align: center; max-width: calc(100% - 2 * var(--gutter)); }
+/* the hint sat bare on the sky at 1.0–1.4:1; on touch screens it is the only sign the ring turns */
+.ring__hint { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); color: var(--ivory); font-size: .62rem; padding: .35em .9em; border-radius: 999px; background: rgba(20, 8, 40, .7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+/* Every caption sits in one grid cell over hidden copies of all the others, so the box keeps the tallest one's height.
+   It used to grow and shrink as the ring turned between one-line and two-line captions, shifting the reviews below by
+   18px each time. */
+.ring__capbox { display: grid; align-items: start; width: calc(100% - 2 * var(--gutter)); margin: 1.2rem auto 0; }
+/* each caption starts from the middle and is pulled back by half its width, so a wider or narrower caption never
+   moves its layout box sideways (that still counted as a small layout shift) */
+.ring__capbox > * { grid-area: 1 / 1; justify-self: start; position: relative; left: 50%; transform: translateX(-50%); }
+.ring__cap--sizer { visibility: hidden; }
+.ring__cap { display: block; margin: 0; padding: .6em 1.2em; border-radius: 999px; background: rgba(20, 8, 40, .55); color: var(--ivory); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); text-align: center; max-width: 100%; }
 .ring__cap:empty { visibility: hidden; }
 
 /* ---------- reviews (light) ---------- */
 .reviews, .profile, .contact { color: var(--plum); }
 .reviews { padding-block: clamp(100px, 13vw, 190px) clamp(70px, 9vw, 130px); }
-.reviews .eyebrow, .profile .eyebrow, .contact .eyebrow { color: #a5561a; }
+/* the dawn behind reviews and profile is still dark rose (#c78da8 at its top): the small labels there take a deeper
+   rust and the lead a deeper plum to reach 4.5:1 (they were 2.37–3.89:1); contact's pale sky keeps the amber */
+.reviews .eyebrow, .profile .eyebrow { color: #5c2406; }
+/* the amber labels (here and in profile, contact, the curtains and the card back) were #a5561a: 3.5–4.4:1 where they
+   sit high on the screen, over the darker rose top of the dawn sky. #80400f keeps the hue and clears 4.5:1 there. */
+.contact .eyebrow { color: #80400f; }
 .reviews__grid { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: clamp(32px, 6vw, 96px); align-items: start; }
-.reviews__head { position: sticky; top: calc(var(--nav-h) + 40px); display: grid; gap: 1.2rem; }
+.reviews__head { position: sticky; top: calc(var(--stick-top) + 40px); transition: top .5s var(--ease); display: grid; gap: 1.2rem; }
 .reviews__head .eyebrow { margin-bottom: 0; }
-.reviews__lead { color: var(--plum-2); }
+.reviews__lead { color: #3f2d55; }
 .reviews__big { font-family: var(--f-display); font-weight: 600; font-size: clamp(1.5rem, 2.6vw, 2.3rem); line-height: 1.45; letter-spacing: -.03em; margin-top: 1rem; }
 .reviews__big .w { opacity: .3; transition: opacity .15s; }
 .reviews__big .w.is-on { opacity: 1; }
@@ -578,8 +646,9 @@ section { position: relative; }
 .msg--me .msg__b { border-radius: 20px 4px 20px 20px; background: #fee500; color: #2a2208; transform-origin: 100% 0; }
 .msg--note .msg__b { background: #f4ecff; }
 .msg--card .msg__b { background: #fffaf0; border: 1px solid #f1dfbf; border-radius: 16px; }
-.msg__typing { display: inline-flex; gap: 4px; padding: .9rem 1.1rem; border-radius: 4px 20px 20px 20px; background: #fff; width: max-content; }
-.msg--me .msg__typing { border-radius: 20px 4px 20px 20px; background: #fee500; }
+/* the dots sit inside the hidden bubble (main.js), so the bubble keeps its height and nothing below it moves */
+.msg__typing { position: absolute; top: 0; left: 0; visibility: visible; display: inline-flex; gap: 4px; padding: .9rem 1.1rem; border-radius: 4px 20px 20px 20px; background: #fff; width: max-content; }
+.msg--me .msg__typing { left: auto; right: 0; border-radius: 20px 4px 20px 20px; background: #fee500; }
 .msg__typing i { width: 6px; height: 6px; border-radius: 50%; background: #9a8aa8; animation: typing 1s infinite; }
 .msg__typing i:nth-child(2) { animation-delay: .15s; }
 .msg__typing i:nth-child(3) { animation-delay: .3s; }
@@ -593,20 +662,20 @@ section { position: relative; }
 .profile__fig figcaption { position: absolute; left: 16px; bottom: 16px; padding: .45em .85em; border-radius: 999px; background: rgba(255, 250, 244, .8); color: var(--plum); font-size: .6rem; }
 .profile__body .h2 { font-weight: 700; letter-spacing: .08em; }
 .cv { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(16px, 2.6vw, 36px); margin-top: 2.4rem; }
-.cv__h { color: #a5561a; padding-bottom: .8rem; margin-bottom: .6rem; border-bottom: 1px solid rgba(37, 22, 62, .2); font-weight: 500; }
+.cv__h { color: #80400f; padding-bottom: .8rem; margin-bottom: .6rem; border-bottom: 1px solid rgba(37, 22, 62, .2); font-weight: 500; }
 .cv li { padding: .5rem 0; font-size: .92rem; line-height: 1.55; border-bottom: 1px solid rgba(37, 22, 62, .08); }
 .skills { margin-top: 2.2rem; padding: 1.2rem 1.4rem; border-radius: 16px; background: rgba(255, 250, 244, .55); font-size: .94rem; line-height: 1.7; }
-.skills .mono { color: #a5561a; margin-right: .8em; }
+.skills .mono { color: #80400f; margin-right: .8em; }
 .more { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(14px, 2vw, 26px); margin-top: clamp(80px, 10vw, 140px); }
 .curtain { position: relative; border-radius: 22px; overflow: hidden; min-height: 380px; background: #fffaf3; box-shadow: 0 30px 70px -45px rgba(60, 20, 60, .6); }
 .curtain__in { position: relative; padding: 2rem 1.7rem; display: flex; flex-direction: column; gap: .8rem; height: 100%; }
-.curtain__k { color: #a5561a; }
+.curtain__k { color: #80400f; }
 .curtain h3 { font-family: var(--f-display); font-weight: 700; font-size: 1.35rem; letter-spacing: -.02em; }
 .curtain ul { display: grid; gap: .5rem; font-size: .9rem; line-height: 1.55; color: #3b2c4c; }
 .curtain li { padding-left: 1em; position: relative; }
 .curtain li::before { content: "·"; position: absolute; left: 0; color: #c07a2a; }
 .plays li em { font-style: normal; color: var(--plum-2); font-size: .82rem; margin-left: .3em; }
-.curtain .link { margin-top: auto; align-self: flex-start; color: #a5561a; }
+.curtain .link { margin-top: auto; align-self: flex-start; color: #80400f; }
 .curtain__l, .curtain__r { position: absolute; top: 0; bottom: 0; width: 51%; z-index: 2; pointer-events: none; background: repeating-linear-gradient(90deg, #7a1328 0 14px, #94203a 14px 26px, #6a0f22 26px 34px); box-shadow: inset 0 -30px 40px rgba(0, 0, 0, .35); }
 .curtain__l { left: 0; transform-origin: left; transform: scaleX(0); }
 .curtain__r { right: 0; transform-origin: right; transform: scaleX(0); }
@@ -620,7 +689,7 @@ section { position: relative; }
 .contact__lead { margin-top: 1.6rem; color: var(--plum-2); max-width: 34em; }
 .contact__list { margin: 2.2rem 0; border-top: 1px solid rgba(37, 22, 62, .18); }
 .contact__list li { display: grid; grid-template-columns: 86px minmax(0, 1fr) auto; align-items: center; gap: .4rem 1rem; padding: 1rem 0; border-bottom: 1px solid rgba(37, 22, 62, .12); }
-.contact__list .mono { color: #a5561a; font-size: .64rem; }
+.contact__list .mono { color: #80400f; font-size: .64rem; }
 .contact__v { font-size: clamp(1.05rem, 1.6vw, 1.3rem); font-weight: 600; letter-spacing: -.01em; user-select: all; }
 .contact__v--sub { grid-column: 2; font-size: .95rem; font-weight: 400; color: var(--plum-2); user-select: auto; }
 .contact__hint { margin-top: .9rem; color: var(--plum-2); font-size: .74rem; }
@@ -640,7 +709,7 @@ section { position: relative; }
 .card3d__back { transform: rotateY(180deg); background: linear-gradient(170deg, #fffaf2, #f3e6d2); color: var(--plum); display: flex; flex-direction: column; }
 .card3d__back img { height: 58%; width: auto; margin: 1.4rem auto 0; object-fit: contain; object-position: bottom; }
 .card3d__back dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .5rem 1rem; padding: 1.4rem 1.6rem; margin-top: auto; border-top: 1px solid rgba(37, 22, 62, .12); background: #fffdf8; }
-.card3d__back dt { color: #a5561a; font-size: .58rem; align-self: center; }
+.card3d__back dt { color: #80400f; font-size: .58rem; align-self: center; }
 .card3d__back dd { font-size: .9rem; font-weight: 500; }
 .card3d__foil { position: absolute; inset: 0; border-radius: 26px; pointer-events: none; mix-blend-mode: color-dodge; opacity: .55; background: radial-gradient(circle at var(--mx, 50%) var(--my, 30%), rgba(255, 255, 255, .55), transparent 40%), linear-gradient(115deg, transparent 20%, rgba(255, 160, 200, .35) 35%, rgba(160, 220, 255, .35) 50%, rgba(255, 236, 160, .35) 65%, transparent 80%); background-size: 100% 100%, 220% 220%; background-position: center, var(--fx, 50%) 50%; transform: translateZ(1px); }
 
@@ -648,7 +717,8 @@ section { position: relative; }
 .foot { position: relative; z-index: 2; color: var(--plum); padding-block: 40px calc(40px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid rgba(37, 22, 62, .14); }
 .foot__in { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; align-items: center; }
 .foot__line { font-family: var(--f-display); font-weight: 500; font-size: 1.05rem; }
-.foot__meta { color: var(--plum-2); font-size: .6rem; }
+/* the copyright line is tiny (.6rem); in the full plum its thin strokes still read at 4.5:1 or better on the dawn */
+.foot__meta { color: var(--plum); font-size: .6rem; }
 
 /* ---------- mini player / modal / preview / toast ---------- */
 .mini { position: fixed; left: 0; right: 0; margin-inline: auto; width: min(460px, calc(100% - 24px)); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 70; display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 999px; background: rgba(8, 12, 34, .82); color: var(--ivory); border: 1px solid var(--line); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: 0 20px 50px -20px rgba(0, 0, 0, .8); overflow: hidden; }
@@ -660,9 +730,15 @@ section { position: relative; }
 .mini__s { color: var(--mist); font-size: .74rem; line-height: 1.35; }
 .mini__eq { width: 72px; height: 28px; flex-shrink: 0; }
 .mini__prog { position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; transform-origin: left; transform: scaleX(0); background: linear-gradient(90deg, var(--star), var(--dawn)); }
-.modal { position: fixed; inset: 0; z-index: 150; display: grid; place-items: center; padding: var(--gutter); }
+.modal { position: fixed; inset: 0; z-index: 150; display: grid; place-items: center; align-content: center; gap: 14px; padding: var(--gutter); }
 .modal__bg { position: absolute; inset: 0; background: rgba(4, 6, 20, .86); backdrop-filter: blur(8px); }
-.modal__box { position: relative; width: min(1100px, 100%); aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; background: #000; box-shadow: 0 40px 120px rgba(0, 0, 0, .8); }
+/* The video is as wide as the screen allows, but never taller than what the screen leaves beside the link below it.
+   Sized by width alone, on short screens (a phone on its side, a low laptop window) it pushed the close button off the
+   top and the link up over the video. 100vh first for browsers without svh. */
+.modal__box { position: relative; width: min(1100px, 100%, calc((100vh - 2 * var(--gutter) - 14px - 2.4rem) * 16 / 9)); width: min(1100px, 100%, calc((100svh - 2 * var(--gutter) - 14px - 2.4rem) * 16 / 9)); aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; background: #000; box-shadow: 0 40px 120px rgba(0, 0, 0, .8); }
+/* the dialog's last stop: Tab from it goes back to the close button (main.js), and it opens the same video on YouTube */
+.modal__out { position: relative; z-index: 1; color: var(--ivory); font-size: .72rem; letter-spacing: .08em; padding: .5em 1em; border-radius: 999px; background: rgba(255, 255, 255, .08); }
+.modal__out:hover, .modal__out:focus-visible { background: rgba(255, 255, 255, .16); }
 .modal__frame, .modal__frame iframe { width: 100%; height: 100%; border: 0; display: block; }
 .modal__x { position: absolute; top: 10px; right: 10px; z-index: 2; width: 42px; height: 42px; border-radius: 50%; background: rgba(0, 0, 0, .6); color: #fff; font-size: 1.5rem; line-height: 1; }
 .preview { position: fixed; left: 0; top: 0; z-index: 45; width: 260px; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; pointer-events: none; opacity: 0; transform: scale(.6); box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .8); }
@@ -773,9 +849,26 @@ section { position: relative; }
   .card3d { max-width: 330px; }
   .ledger__list li { grid-template-columns: 1fr; gap: .2rem; }
   .ledger__list .v { text-align: left; }
-  .rec__list { max-height: none; }
+  /* the audience only sticks beside the list; stacked above it, it stayed pinned while all 16 rows ran over its numbers */
+  .crowd { position: relative; top: auto; }
+}
+/* Phones held sideways. The stacked layout above starts the copy 300px down, which is below a ~340px-tall screen, so the
+   first screen showed only sky. Put the copy back beside the portrait, starting right under the header bar. */
+@media (max-width: 900px) and (orientation: landscape) {
+  .hero__inner { grid-template-columns: minmax(0, 1.3fr) minmax(0, .7fr); align-items: start; }
+  .hero__fig { position: relative; right: auto; top: auto; align-self: start; height: calc(100svh - var(--nav-h) - 16px); }
+  .hero__img { -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent 100%); mask-image: linear-gradient(to bottom, #000 78%, transparent 100%); }
+  .hero__copy { margin-top: 0; padding: 14px 0 110px; }
+  .hero__title { font-size: clamp(1.9rem, 5vw, 2.7rem); }
+  .hero__name { margin: .8rem 0 .7rem; }
+  .hero__cta { margin-top: 1.2rem; }
 }
 @media (max-width: 560px) {
+  /* small photos: the caption runs as a band along the bottom edge, full width and smaller, so it takes two lines
+     instead of three and no longer covers half the picture */
+  .pic figcaption { left: 0; right: 0; bottom: 0; width: auto; max-width: none; padding: .9em .8em .5em; border-radius: 0; font-size: .62rem; line-height: 1.3; background: linear-gradient(rgba(6, 9, 25, 0), rgba(6, 9, 25, .84) 30%); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  /* a long credit wraps to two lines rather than running wider than the strip's visible part beside its label */
+  .daw__clips li { white-space: normal; max-width: 220px; height: auto; min-height: 34px; padding: 6px 12px; line-height: 1.25; }
   .hero__title { font-size: clamp(2.1rem, 10vw, 2.8rem); }
   .hero__cta .btn { --h: 48px; }
   .hero__cta .btn--text { width: 100%; justify-content: flex-start; }

@@ -49,6 +49,15 @@
     if (past.length) gsap.set(past, Object.assign({ overwrite: true }, end));
     if (now.length) gsap.fromTo(now, from, Object.assign({ overwrite: true, stagger: { amount: Math.min(.6, (now.length - 1) * .07) } }, end, opts));
   };
+  // The hidden state goes on when the batch is set up. Put on only at the trigger line, an element first showed as it is
+  // below that line, then blinked out and rose again. clamp() keeps a start that lies past the end of the page reachable,
+  // so nothing hidden here can stay hidden.
+  var batchReveal = function (targets, start, from, end, opts) {
+    var els = typeof targets === 'string' ? $$(targets) : targets;
+    if (!els.length) return;
+    gsap.set(els, from);
+    ScrollTrigger.batch(els, { start: 'clamp(' + start + ')', once: true, onEnter: function (b) { revealBatch(b, from, end, opts); } });
+  };
 
   /* ---------- smooth scroll ---------- */
   var lenis = null;
@@ -61,10 +70,37 @@
   });
   var velocity = function () { return lenis ? lenis.velocity : 0; };
 
+  // `heading` is the section an anchor jump is on its way to, until it lands or a hand takes over. A width change on
+  // the way (rotation, a resized window) re-aims the jump there; it used to land wherever the old target position fell.
+  // `reaim` holds it through a width change until ScrollTrigger has re-measured, since the jump may end first.
+  var heading = null, reaim = false;
   var scrollToEl = function (el) {
     if (!el) return;
-    if (lenis) lenis.scrollTo(el, { offset: el.id === 'top' ? 0 : -8, duration: 1.6, easing: function (t) { return 1 - Math.pow(1 - t, 4); } });
-    else el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    heading = el;
+    var landed = function () { if (heading === el && !reaim) heading = null; };
+    if (lenis) lenis.scrollTo(el, { offset: el.id === 'top' ? 0 : -8, duration: 1.6, easing: function (t) { return 1 - Math.pow(1 - t, 4); }, onComplete: landed });
+    else { el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }); setTimeout(landed, reduced ? 0 : 1600); }
+  };
+  // A jump is forgotten once the visitor takes over (wheel, touch, a scroll key) or an overlay stops the scroll; one cut
+  // short by the menu opening used to stay remembered and pulled the page back on the next width change.
+  var forget = function () { heading = null; reaim = false; };
+  ['wheel', 'touchstart'].forEach(function (t) { window.addEventListener(t, forget, { passive: true, capture: true }); });
+  window.addEventListener('keydown', function (e) { if (/^(PageDown|PageUp|ArrowDown|ArrowUp|Home|End| )$/.test(e.key)) forget(); }, true);
+
+  // Overlays (menu, video) hold the page behind them still. Lenis does that while it runs. Under reduced motion it is
+  // off, so the document itself is locked instead; until now the page behind kept scrolling.
+  var lockScroll = function (on) {
+    if (on) forget();
+    if (lenis) { if (on) lenis.stop(); else lenis.start(); }
+    root.classList.toggle('is-locked', on && !lenis);
+  };
+  // Keep Tab inside an open overlay: past the last item it wraps to the first, and Shift+Tab wraps back.
+  var trapTab = function (e, items) {
+    items = items.filter(function (el) { return el.getClientRects().length; });
+    if (!items.length) return;
+    var at = items.indexOf(document.activeElement), last = items.length - 1;
+    if (e.shiftKey && at <= 0) { e.preventDefault(); items[last].focus(); }
+    else if (!e.shiftKey && (at === -1 || at === last)) { e.preventDefault(); items[0].focus(); }
   };
 
   /* ---------- Voice ticks (audio level → sky, mini eq, chart) ---------- */
@@ -115,33 +151,89 @@
   safe('nav', function () {
     var nav = $('#nav'), lastY = window.scrollY, menuBtn = $('.nav__menu'), menu = $('#menu');
     var links = $$('.nav__links a');
+    // mirrored on <html> so the sticky bars below the header (stage switcher, audience, reviews heading) move up into
+    // its place instead of leaving a header-high gap above them while it is slid away
+    var hidden = false;
+    var setHidden = function (on) {
+      if (on === hidden) return;
+      hidden = on;
+      nav.classList.toggle('is-hidden', on);
+      root.classList.toggle('nav-hidden', on);
+    };
+    // Keyboard focus in the header holds it down, or Tab would walk through links slid off screen. Only keyboard focus
+    // (:focus-visible): a click or tap also leaves focus on the link or button it hit, and holding for that kept the
+    // header, and the bars stuck under it, down for good after any header click or menu close. Scrolling by keyboard
+    // keeps the hold; a wheel, touch or click lets go, and the next Tab into the header brings it back.
+    var hold = false;
+    var keyFocus = function (el) { try { return el.matches(':focus-visible'); } catch (err) { return true; } };
+    nav.addEventListener('focusin', function (e) { if (keyFocus(e.target)) { hold = true; setHidden(false); } });
+    nav.addEventListener('focusout', function (e) { if (!e.relatedTarget || !nav.contains(e.relatedTarget)) hold = false; });
+    var letGo = function () { hold = false; };
+    ['wheel', 'touchstart', 'pointerdown'].forEach(function (t) { window.addEventListener(t, letGo, { passive: true, capture: true }); });
+    // Keyboard focus on a link or button the hidden header took off screen: Tab brings the header back, and Enter (or
+    // Space on a button) first brings it back and waits for the next press, instead of following what nobody can see.
+    // Focus that a click left behind is not keyboard focus: there every key does what it always does (Space scrolls)
+    // and the header hides as usual. Treating that focus the same kept the header down and ate the first Space.
+    nav.addEventListener('keydown', function (e) {
+      var a = document.activeElement;
+      if (!hidden || !a || !keyFocus(a)) return;
+      if (e.key === 'Tab') { setHidden(false); return; }
+      if (e.key === 'Enter' || (e.key === ' ' && a.tagName === 'BUTTON')) { e.preventDefault(); hold = true; setHidden(false); }
+    });
     onTick(function () {
       var y = window.scrollY;
       nav.classList.toggle('is-solid', y > 60);
       if (!menu || menu.hidden) {
-        if (y > lastY + 4 && y > 500) nav.classList.add('is-hidden');
-        else if (y < lastY - 4 || y < 200) nav.classList.remove('is-hidden');
+        if (y > lastY + 4 && y > 500 && !hold) setHidden(true);
+        else if (y < lastY - 4 || y < 200) setHidden(false);
       }
       lastY = y;
     });
+    // `isOpen` is the menu's one state. `menu.hidden` only flips when the close tween ends, so judging by it let a
+    // click during the close start another close; that tween's onComplete then hid a menu that had been reopened,
+    // leaving the X button over a hidden menu and the page locked.
+    var isOpen = false;
     var setMenu = function (open) {
+      if (open === isOpen) return;
+      isOpen = open;
       menuBtn.setAttribute('aria-expanded', String(open));
       menuBtn.setAttribute('aria-label', open ? '메뉴 닫기' : '메뉴 열기');
+      if (hasGsap) gsap.killTweensOf(menu);
       if (open) {
+        var shut = menu.hidden;
         menu.hidden = false;
-        lenis && lenis.stop();
+        lockScroll(true);
         if (hasGsap && !reduced) {
-          gsap.fromTo(menu, { clipPath: 'circle(0px at calc(100% - 44px) 34px)' }, { clipPath: 'circle(150% at calc(100% - 44px) 34px)', duration: .9, ease: 'expo.out' });
-          gsap.fromTo($$('.menu__links a'), { y: 40, opacity: 0 }, { y: 0, opacity: 1, stagger: .05, duration: .8, ease: 'expo.out', delay: .1 });
+          // Reopened while it was still closing: grow from where the circle is now. Starting again from 0 made the
+          // half-closed menu blink out for a frame first.
+          if (shut) {
+            gsap.fromTo(menu, { clipPath: 'circle(0px at calc(100% - 44px) 34px)' }, { clipPath: 'circle(150% at calc(100% - 44px) 34px)', duration: .9, ease: 'expo.out' });
+            gsap.fromTo($$('.menu__links a'), { y: 40, opacity: 0 }, { y: 0, opacity: 1, stagger: .05, duration: .8, ease: 'expo.out', delay: .1, overwrite: true });
+          } else gsap.to(menu, { clipPath: 'circle(150% at calc(100% - 44px) 34px)', duration: .9, ease: 'expo.out' });
         } else menu.style.clipPath = 'none';
       } else {
-        lenis && lenis.start();
-        if (hasGsap && !reduced) gsap.to(menu, { clipPath: 'circle(0px at calc(100% - 44px) 34px)', duration: .6, ease: 'expo.inOut', onComplete: function () { menu.hidden = true; } });
+        lockScroll(false);
+        if (hasGsap && !reduced) gsap.to(menu, { clipPath: 'circle(0px at calc(100% - 44px) 34px)', duration: .6, ease: 'expo.inOut', onComplete: function () { if (!isOpen) menu.hidden = true; } });
         else menu.hidden = true;
       }
     };
-    menuBtn && menuBtn.addEventListener('click', function () { setMenu(menu.hidden); });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && menu && !menu.hidden) setMenu(false); });
+    menuBtn && menuBtn.addEventListener('click', function () { setMenu(!isOpen); });
+    // The menu button only exists at 1180px and below. Widening the window past that with the menu open left the menu
+    // over the page with no close button and the scroll locked; close it, and keep focus out of the hidden menu.
+    var menuQ = window.matchMedia('(max-width: 1180px)');
+    var onMenuQ = function () {
+      if (menuQ.matches || !isOpen) return;
+      var inside = menu.contains(document.activeElement);
+      setMenu(false);
+      if (inside) { var first = $('.nav__links a'); if (first) first.focus({ preventScroll: true }); }
+    };
+    if (menuQ.addEventListener) menuQ.addEventListener('change', onMenuQ); else if (menuQ.addListener) menuQ.addListener(onMenuQ);
+    document.addEventListener('keydown', function (e) {
+      if (!isOpen) return;
+      // Esc hands focus back to the button that opened the menu instead of dropping it on <body>
+      if (e.key === 'Escape') { setMenu(false); menuBtn.focus(); }
+      else if (e.key === 'Tab') trapTab(e, [menuBtn].concat($$('a, button', menu)));
+    });
     document.addEventListener('click', function (e) {
       var a = e.target.closest('a[href^="#"]');
       if (!a) return;
@@ -150,7 +242,7 @@
       var el = document.getElementById(id.slice(1));
       if (!el) return;
       e.preventDefault();
-      if (menu && !menu.hidden) setMenu(false);
+      if (isOpen) setMenu(false);
       scrollToEl(el);
     });
     // active link
@@ -183,8 +275,9 @@
   /* ---------- stage switcher (the four stages) ---------- */
   safe('stages', function () {
     if (!hasGsap) return;
-    var nav = $('.stages__nav'), bar = $('.stages__bar'), links = $$('.stages__nav a');
+    var nav = $('.stages__nav'), bar = $('.stages__bar'), links = $$('.stages__nav a'), current = null;
     var move = function (a) {
+      current = a;
       if (!a) { bar.style.width = '0px'; return; }
       bar.style.width = a.offsetWidth + 'px';
       bar.style.transform = 'translateX(' + a.offsetLeft + 'px)';
@@ -197,6 +290,9 @@
       ScrollTrigger.create({ trigger: sec, start: 'top 55%', end: 'bottom 55%', onToggle: function (st) { if (st.isActive) move(a); } });
     });
     ScrollTrigger.create({ trigger: '#stages', start: 'top 55%', end: 'bottom 55%', onLeave: function () { move(null); links.forEach(function (x) { x.classList.remove('is-active'); }); }, onLeaveBack: function () { move(null); links.forEach(function (x) { x.classList.remove('is-active'); }); } });
+    // The bar holds pixel sizes from the last stage change. Re-measure after a resize or rotation within one stage;
+    // until now it stayed off the active link.
+    ScrollTrigger.addEventListener('refresh', function () { move(current); });
   });
 
   /* ---------- hero ---------- */
@@ -204,16 +300,20 @@
   safe('hero', function () {
     var hero = $('#top');
     if (hasGsap && !reduced) {
-      var nameKo = $('.hero__ko');
-      var chars = nameKo.textContent.split('');
+      var nameKo = $('.hero__ko'), name = nameKo.textContent;
       nameKo.textContent = '';
-      chars.forEach(function (c) { var s = document.createElement('span'); s.textContent = c; s.style.display = 'inline-block'; nameKo.appendChild(s); });
+      // The letters are separate inline-blocks only for the entrance. Meanwhile a screen reader gets the name whole from
+      // a hidden copy (split letters were spelled out one by one); once the letters land they go back to plain text, so
+      // the name is never read letter by letter nor copied twice ("이샛별이샛별").
+      var letters = name.split('').map(function (c) { var s = document.createElement('span'); s.textContent = c; s.style.display = 'inline-block'; s.setAttribute('aria-hidden', 'true'); nameKo.appendChild(s); return s; });
+      var whole = document.createElement('span'); whole.className = 'sr-only'; whole.textContent = name; nameKo.appendChild(whole);
+      var unsplit = function () { nameKo.textContent = name; };
       heroIn = gsap.timeline({ paused: true, defaults: { ease: 'expo.out' } });
       heroIn
         .from('.hero__title .ln__in', { yPercent: 118, rotate: 2, duration: 1.5, stagger: .13 }, 0)
         .from('.hero__img', { yPercent: 10, scale: 1.1, opacity: 0, duration: 2, ease: 'power3.out' }, 0)
         .from('.hero__glow', { scale: .3, opacity: 0, duration: 2.4 }, .1)
-        .from(nameKo.children, { opacity: 0, y: 26, filter: 'blur(14px)', stagger: .09, duration: 1.2 }, .35)
+        .from(letters, { opacity: 0, y: 26, filter: 'blur(14px)', stagger: .09, duration: 1.2, onComplete: unsplit }, .35)
         .from('.hero__en', { opacity: 0, x: -20, duration: 1.2 }, .55)
         .from('.hero__lead', { opacity: 0, y: 24, duration: 1.3 }, .55)
         .from('.hero__cta > *', { opacity: 0, y: 22, stagger: .08, duration: 1.1 }, .65)
@@ -239,6 +339,7 @@
     size(); window.addEventListener('resize', size);
     visible(hero, function (v) { on = v; });
     window.addEventListener('pointermove', function (e) {
+      if (reduced) return;
       mx = e.clientX / window.innerWidth;
       energy = Math.min(1.4, energy + Math.abs(e.clientX - lastX) / 260);
       lastX = e.clientX;
@@ -250,7 +351,8 @@
     ];
     onTick(function (now) {
       if (!on) return;
-      var t = now / 1000, td = Voice && Voice.timeData(), lvl = Voice ? Voice.level : 0;
+      // reduced motion: the line holds still (time stops); it still answers a voice the visitor plays
+      var t = reduced ? 0 : now / 1000, td = Voice && Voice.timeData(), lvl = Voice ? Voice.level : 0;
       energy *= .965;
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
       g.clearRect(0, 0, W, H);
@@ -274,8 +376,12 @@
 
   /* ---------- intro: voice → waveform → name → stars ---------- */
   safe('intro', function () {
-    var intro = $('#intro');
+    var intro = $('#intro'), finished = false;
+    // Runs once. If the 8s fallback ends the intro while a background tab has paused its frames, the frame loop would
+    // wake up later and run reveal() and finish() (refresh, lenis start) a second time.
     var finish = function () {
+      if (finished) return;
+      finished = true;
       if (intro && intro.parentNode) intro.parentNode.removeChild(intro);
       root.classList.remove('is-intro');
       lenis && lenis.start();
@@ -341,6 +447,7 @@
     };
 
     var frame = function (now) {
+      if (finished) return;
       raf = requestAnimationFrame(frame);
       var t = (now - t0) / 1000;
       g.globalCompositeOperation = 'source-over';
@@ -408,16 +515,32 @@
   safe('marquee', function () {
     $$('.marquee__row').forEach(function (row) {
       var track = row.querySelector('.marquee__track');
-      var w = track.offsetWidth || 800, need = Math.ceil(window.innerWidth * 2 / w) + 1;
-      for (var i = 0; i < need; i++) row.appendChild(track.cloneNode(true));
-      var dir = +row.getAttribute('data-dir') || 1, base = row.classList.contains('marquee__row--sub') ? .45 : .8, x = 0, on = true, sk = 0;
-      visible(row, function (v) { on = v; });
+      var dir = +row.getAttribute('data-dir') || 1, base = row.classList.contains('marquee__row--sub') ? .45 : .8, x = 0, on = true, sk = 0, w = 800;
+      // keep x in (-w, 0] whatever the step size; a single `if` let a fast scroll carry it out of range
+      var wrap = function (v) { return ((v % w) - w) % w; };
+      // the track width follows vw-based font sizes and web fonts, so measure again instead of trusting the first read
+      var measure = function () {
+        w = track.offsetWidth || w;
+        var need = Math.ceil(window.innerWidth * 2 / w) + 1;
+        for (var i = row.children.length - 1; i < need; i++) row.appendChild(track.cloneNode(true));
+        x = wrap(x);
+      };
+      measure();
+      var queued = false;
+      window.addEventListener('resize', function () {
+        if (queued) return;
+        queued = true;
+        requestAnimationFrame(function () { queued = false; measure(); });
+      });
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+      // watch the static .marquee box, not the row: the row is the thing being translated, and once it slid a
+      // viewport-width left its own box sat wholly inside the parent's overflow clip, read as hidden, and froze for good
+      visible(row.parentNode, function (v) { on = v; });
       if (reduced) return;
       onTick(function () {
         if (!on) return;
-        var v = velocity();
-        x -= (base + Math.abs(v) * .12) * dir * (v < -0.5 ? -1 : 1);
-        if (x < -w) x += w; if (x > 0) x -= w;
+        var v = clamp(velocity(), -60, 60);
+        x = wrap(x - (base + Math.abs(v) * .12) * dir * (v < -0.5 ? -1 : 1));
         sk = lerp(sk, clamp(-v * .35, -9, 9), .12);
         row.style.transform = 'translate3d(' + x.toFixed(2) + 'px,0,0) skewX(' + sk.toFixed(2) + 'deg)';
       });
@@ -454,15 +577,14 @@
       gsap.fromTo(img, { scale: 1.35 }, { scale: 1, duration: 2.2, ease: 'expo.out', scrollTrigger: { trigger: pic, start: 'top 90%', once: true } });
       var sp = parseFloat(pic.getAttribute('data-speed') || '1');
       if (sp !== 1) {
-        var amt = (1 - sp) * (mobileQ.matches ? 80 : 220);
-        gsap.fromTo(pic, { y: -amt }, { y: amt, ease: 'none', scrollTrigger: { trigger: pic, start: 'top bottom', end: 'bottom top', scrub: true } });
+        // read the breakpoint on every refresh: a value fixed at load kept the phone-sized travel after rotating to
+        // landscape, and the reveal triggers on the same .pic were then measured off that wrong offset
+        var amt = function () { return (1 - sp) * (mobileQ.matches ? 80 : 220); };
+        gsap.fromTo(pic, { y: function () { return -amt(); } }, { y: amt, ease: 'none', scrollTrigger: { trigger: pic, start: 'top bottom', end: 'bottom top', scrub: true, invalidateOnRefresh: true } });
       }
     });
     // cards and lists
-    ScrollTrigger.batch('.strength, .hl, .clients__list li, .reel, .vfeature, .tracks__col, .cv__col, .stat', {
-      start: 'top 90%', once: true,
-      onEnter: function (els) { revealBatch(els, { y: 40, opacity: 0 }, { y: 0, opacity: 1 }, { duration: 1.1, ease: 'expo.out' }); }
-    });
+    batchReveal('.strength, .hl, .clients__list li, .reel, .vfeature, .tracks__col, .cv__col, .stat', 'top 90%', { y: 40, opacity: 0 }, { y: 0, opacity: 1 }, { duration: 1.1, ease: 'expo.out' });
     $$('.pull p').forEach(function (p) {
       gsap.fromTo(p, { opacity: 0, y: 30, filter: 'blur(8px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.4, ease: 'expo.out', scrollTrigger: { trigger: p, start: 'top 86%', once: true } });
     });
@@ -477,12 +599,22 @@
     if (!hasGsap || reduced) return;
     $$('.stat__n').forEach(function (el) {
       var end = +el.getAttribute('data-count'), plain = el.hasAttribute('data-plain');
+      var fmt = function (v) { return plain ? String(Math.round(v)) : Math.round(v).toLocaleString('ko-KR'); };
       var o = { v: plain ? 1989 : 0 };
+      // Until the count ends, a screen reader (and a copy) gets the real figure from a hidden twin and the counting
+      // digits are only drawn; before, the page read 1989 / 0 / 0 / 0 until it was scrolled to. Then the figure is
+      // plain text again and the twin goes.
+      var real = document.createElement('span'); real.className = 'sr-only'; real.textContent = fmt(end);
+      el.setAttribute('aria-hidden', 'true'); el.classList.add('is-counting');
+      el.parentNode.insertBefore(real, el.nextSibling);
+      var done = function () { el.textContent = fmt(end); el.removeAttribute('aria-hidden'); el.classList.remove('is-counting'); if (real.parentNode) real.parentNode.removeChild(real); };
+      // Start from the first value right away (the card used to show the final figure, then drop back and count up).
+      // Count on the card's trigger, the same edge its fade uses. The number's own top sits about 76px lower, and a
+      // card stopped between the two stood fully lit at 0.
+      el.textContent = fmt(o.v);
       ScrollTrigger.create({
-        trigger: el, start: 'top 90%', once: true,
-        onEnter: function () {
-          gsap.to(o, { v: end, duration: 2.4, ease: 'power3.out', onUpdate: function () { el.textContent = plain ? String(Math.round(o.v)) : Math.round(o.v).toLocaleString('ko-KR'); } });
-        }
+        trigger: el.closest('.stat') || el, start: 'clamp(top 90%)', once: true,
+        onEnter: function () { gsap.to(o, { v: end, duration: 2.4, ease: 'power3.out', onUpdate: function () { el.textContent = fmt(o.v); }, onComplete: done }); }
       });
     });
   });
@@ -556,8 +688,10 @@
     });
     Voice.on(function (type, cur) {
       var on = cur === greet;
-      if (on) read._audio = true;
-      else if (type === 'change') read._audio = false;
+      // The recording leads the script only while it plays, or once it has played to the end (everything stays lit).
+      // Paused or closed, the scroll takes over again; it used to stay frozen at the paused word, because pausing and
+      // closing send 'pause', not 'change'.
+      read._audio = on && (Voice.playing || !!(Voice.audio && Voice.audio.ended));
       var playing = on && Voice.playing;
       btns.forEach(function (b) { b.classList.toggle('is-playing', playing); b.setAttribute('aria-label', playing ? '인사말 녹음 일시정지' : (b.classList.contains('read__play') ? '인사말 녹음 듣기' : '목소리 듣기')); });
       if (on && type === 'ended' && read._paint) read._paint(1, Voice.audio.duration, Voice.audio.duration);
@@ -580,15 +714,26 @@
     var ro = { tone: $('[data-ro="tone"]', sec), energy: $('[data-ro="energy"]', sec), tempo: $('[data-ro="tempo"]', sec) };
     var roN = { tone: $('[data-ro-n="tone"]', sec), energy: $('[data-ro-n="energy"]', sec), tempo: $('[data-ro-n="tempo"]', sec) };
     var MODES = [
-      { m: 'MODE 01 · 의전', t: 'VIP 의전 아나운싱', d: '장관과 기업 대표가 함께하는 VIP 투어. 동선과 시간을 지키며 한 마디도 흐트러지지 않는 차분한 진행.', w: 'Elegant', v: '의전' },
+      { m: 'MODE 01 · VIP', t: 'VIP 의전 아나운싱', d: '장관과 기업 대표가 함께하는 VIP 투어. 동선과 시간을 지키며 한 마디도 흐트러지지 않는 차분한 진행.', w: 'Elegant', v: 'VIP' },
       { m: 'MODE 02 · 공식행사', t: '격식 있는 공식행사', d: '내빈 소개부터 폐회 선언까지. 정확한 전달력과 신뢰감으로 행사의 품격을 지킵니다.', w: 'Trusted', v: '공식행사' },
       { m: 'MODE 03 · 팀빌딩', t: '몰입을 이끄는 팀빌딩', d: '목표를 함께 이루도록 판을 깔아 주는 촉진자. 긴장은 풀고 몰입은 높입니다.', w: 'Engaging', v: '팀빌딩' },
-      { m: 'MODE 04 · 레크', t: '현장을 뒤집는 레크리에이션', d: '1,200명 앞에서도 흔들리지 않는 에너지. 웃음과 함성으로 현장을 가득 채웁니다.', w: 'Bright!', v: '레크' }
+      { m: 'MODE 04 · 레크', t: '현장을 뒤집는 레크레이션', d: '1,200명 앞에서도 흔들리지 않는 에너지. 웃음과 함성으로 현장을 가득 채웁니다.', w: 'Bright!', v: '레크' }
     ];
     var val = 0, target = 0, dragging = false, mode = -1, on = false, drawn = -1;
-    var cv = $('.range__wave', sec), g = cv.getContext('2d'), W = 0, H = 0, dpr = 1;
-    var size = function () { var r = cv.getBoundingClientRect(); dpr = Math.min(devicePixelRatio || 1, 2); W = r.width; H = r.height; cv.width = W * dpr; cv.height = H * dpr; };
+    var cv = $('.range__wave', sec), g = cv.getContext('2d'), W = 0, H = 0, dpr = 1, tw = 0, track = $('.fader__track', sec);
+    // tw: the track's width, the knob's full travel (it starts on the track's left end). The knob moves by transform,
+    // compositor only, instead of re-laying out `left` every frame.
+    var place = function () { knob.style.transform = 'translateX(' + (val * tw).toFixed(1) + 'px)'; };
+    // Re-place the knob here as well, not only in the frame loop: that loop runs only while the section is on screen,
+    // so a rotation elsewhere kept the old travel in px, and a knob at 100% then widened a phone's page by 316px.
+    var size = function () {
+      var r = cv.getBoundingClientRect(); dpr = Math.min(devicePixelRatio || 1, 2); W = r.width; H = r.height; cv.width = W * dpr; cv.height = H * dpr;
+      tw = track.clientWidth; drawn = -1; place();
+    };
     size(); window.addEventListener('resize', size);
+    // and again after each ScrollTrigger refresh. At the resize event the pinned block still carries the width the pin
+    // fixed before the rotation (750px on a phone turned upright), and only the refresh resets it.
+    if (hasGsap) ScrollTrigger.addEventListener('refresh', size);
     visible(sec, function (v) { on = v; if (!v) Sky.tension = 0; });
 
     var setMode = function (i) {
@@ -599,9 +744,10 @@
       ticksEl.forEach(function (s, k) { s.classList.toggle('is-on', k === i); });
       var M = MODES[i];
       var apply = function () { modeEl.textContent = M.m; titleEl.textContent = M.t; descEl.textContent = M.d; };
-      if (first || !hasGsap) apply();
+      // reduced motion: the copy and the word change in place, without the fade or the scramble
+      if (first || !hasGsap || reduced) apply();
       else gsap.timeline().to(copy, { opacity: 0, y: 10, duration: .18, ease: 'power2.in', onComplete: apply }).to(copy, { opacity: 1, y: 0, duration: .5, ease: 'expo.out' });
-      if (hasGsap && window.ScrambleTextPlugin && !first) gsap.to(word, { duration: .6, scrambleText: { text: M.w, chars: 'abcdefghijklmnopqrstuvwxyz', speed: 1 } });
+      if (hasGsap && window.ScrambleTextPlugin && !first && !reduced) gsap.to(word, { duration: .6, scrambleText: { text: M.w, chars: 'abcdefghijklmnopqrstuvwxyz', speed: 1 } });
       else word.textContent = M.w;
       fader.setAttribute('aria-valuetext', M.v);
     };
@@ -611,9 +757,30 @@
       var r = $('.fader__track', sec).getBoundingClientRect();
       return clamp((e.clientX - r.left) / r.width, 0, 1);
     };
-    fader.addEventListener('pointerdown', function (e) { dragging = true; fader.setPointerCapture(e.pointerId); target = fromEvent(e); });
+    // A hand on the fader wins.
+    // - It stops the phone demo for good; before, the demo kept writing the value and dragged the knob on to 100%.
+    // - On desktop the scroll moves the value on from where the hand left it; before, any scroll snapped it back to
+    //   the scroll position, even an arrow-key change. The hand's value is kept as a point (scroll p0, value v0) and
+    //   the scroll bends its line through that point, so the top of the pin still reads 0 and its end 100. A plain
+    //   offset stopped short: Home, then scrolling to the end, left it at 67–69.
+    var touched = false, demoTween = null, prog = 0, p0 = 0, v0 = null;
+    var takeOver = function () { touched = true; if (demoTween) { demoTween.kill(); demoTween = null; } };
+    var keep = function () { p0 = prog; v0 = target; };
+    // The line is never steeper than 1.6: a hand close to either end of the pin used to give a near-vertical line, and
+    // a little scroll then threw the value across the range (80 → 9). Where 1.6 can't reach the end in time, leaving
+    // the pin finishes the run (onLeave, onLeaveBack).
+    var follow = function (p) {
+      if (v0 === null) return p;
+      var s = p >= p0 ? (p0 >= 1 ? 0 : (1 - v0) / (1 - p0)) : (p0 <= 0 ? 0 : v0 / p0);
+      return v0 + (p - p0) * clamp(s, 0, 1.6);
+    };
+    fader.addEventListener('pointerdown', function (e) {
+      takeOver(); dragging = true; target = fromEvent(e);
+      // WebKit throws for a pointer it does not track (a synthetic event, for one); the press must still count
+      try { fader.setPointerCapture(e.pointerId); } catch (err) {}
+    });
     fader.addEventListener('pointermove', function (e) { if (dragging) target = fromEvent(e); });
-    var end = function () { dragging = false; };
+    var end = function () { if (dragging) { dragging = false; keep(); } };
     fader.addEventListener('pointerup', end);
     fader.addEventListener('pointercancel', end);
     fader.addEventListener('keydown', function (e) {
@@ -623,32 +790,46 @@
       else if (k === 'Home') target = 0;
       else if (k === 'End') target = 1;
       else return;
+      takeOver(); keep();
       e.preventDefault();
     });
 
     if (hasGsap && !reduced) {
-      var mm = gsap.matchMedia();
-      mm.add('(min-width: 901px)', function () {
-        ScrollTrigger.create({
-          trigger: $('.range__pin', sec), start: 'top top', end: '+=140%', pin: true, scrub: true, anticipatePin: 1,
-          onUpdate: function (st) { if (!dragging) target = st.progress; }
-        });
+      // One pin at every width; on phones it never engages (below). It used to be rebuilt by gsap.matchMedia whenever the
+      // window crossed 900px. That rebuild ran a second ScrollTrigger refresh inside the resize refresh, and the inner one
+      // recorded the scroll at its measuring position (0) and restored that, so resizing or rotating an iPad sent the
+      // visitor back to the top. refreshPriority sorts the pin ahead of the triggers below it, so they are measured with
+      // its 140% spacer in place.
+      // On phones the pin must never engage. A zero-length pin still switched to position: fixed for a frame or two
+      // as the page passed it, and the block jumped 10 to 100px with the scroll speed; so there its start lies beyond
+      // any page length instead.
+      ScrollTrigger.create({
+        trigger: $('.range__pin', sec), start: function () { return mobileQ.matches ? 'top+=999999 top' : 'top top'; },
+        end: function () { return mobileQ.matches ? '+=0' : '+=140%'; },
+        pin: true, scrub: true, anticipatePin: 1, refreshPriority: 1, invalidateOnRefresh: true,
+        onUpdate: function (st) { prog = st.progress; if (!dragging && !mobileQ.matches) target = clamp(follow(prog), 0, 1); },
+        // only a visitor scrolling out finishes the run; a refresh that moves the pin (a window narrowed to phone width
+        // pushes its start past the page) used to send the value back to 0
+        onLeave: function () { v0 = null; if (!dragging && !ScrollTrigger.isRefreshing && !mobileQ.matches) target = 1; },
+        onLeaveBack: function () { v0 = null; if (!dragging && !ScrollTrigger.isRefreshing && !mobileQ.matches) target = 0; }
       });
-      mm.add('(max-width: 900px)', function () {
-        var demo = { v: 0 };
-        ScrollTrigger.create({
-          trigger: sec, start: 'top 60%', once: true,
-          onEnter: function () { gsap.to(demo, { v: 1, duration: 4.2, ease: 'power1.inOut', onUpdate: function () { if (!dragging) target = demo.v; } }); }
-        });
+      // phones: no scroll travel to drive the fader, so it shows its range once by itself
+      var demo = { v: 0 };
+      ScrollTrigger.create({
+        trigger: sec, start: 'top 60%', once: true,
+        onEnter: function () {
+          if (touched || !mobileQ.matches) return;
+          demoTween = gsap.to(demo, { v: 1, duration: 4.2, ease: 'power1.inOut', onUpdate: function () { if (!dragging) target = demo.v; }, onComplete: function () { demoTween = null; } });
+        }
       });
     }
 
     onTick(function (now) {
       if (!on) return;
-      val += (target - val) * .12;
+      val = reduced ? target : val + (target - val) * .12;
       if (Math.abs(val - drawn) > .0004) {
         drawn = val;
-        knob.style.left = (val * 100).toFixed(2) + '%';
+        place();
         fill.style.transform = 'scaleX(' + val.toFixed(4) + ')';
         fader.setAttribute('aria-valuenow', String(Math.round(val * 100)));
         var tone = Math.round(96 - val * 70), energy = Math.round(12 + val * 86), tempo = Math.round(72 + val * 60);
@@ -661,7 +842,8 @@
       }
       Sky.tension = val;
       // bars: smooth and low when formal, tall and jittery when the room is up
-      var t = now / 1000, n = Math.max(32, Math.round(W / 11)), bw = W / n;
+      // reduced motion: the bars stand still at the current tension instead of jittering 14 times a second
+      var t = reduced ? 0 : now / 1000, n = Math.max(32, Math.round(W / 11)), bw = W / n;
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
       g.clearRect(0, 0, W, H);
       for (var i = 0; i < n; i++) {
@@ -716,18 +898,9 @@
 
   /* ---------- career ledger: expand + floating photo preview ---------- */
   safe('ledger', function () {
+    // Every row shows: the list follows her career sheet in full, so the old "전체 N건 보기" fold is gone.
     $$('.ledger').forEach(function (led) {
-      var items = $$('.ledger__list li', led), more = $('.ledger__more', led), KEEP = 8;
-      items.forEach(function (li, i) { if (i >= KEEP) li.classList.add('is-extra'); });
-      if (hasGsap && !reduced) ScrollTrigger.batch(items.slice(0, KEEP), { start: 'top 92%', once: true, onEnter: function (els) { revealBatch(els, { y: 30, opacity: 0 }, { y: 0, opacity: 1 }, { duration: 1, ease: 'expo.out' }); } });
-      if (more) more.addEventListener('click', function () {
-        var open = !led.classList.contains('is-open');
-        led.classList.toggle('is-open', open);
-        more.setAttribute('aria-expanded', String(open));
-        more.textContent = open ? '접기' : '전체 ' + items.length + '건 보기';
-        if (open && hasGsap && !reduced) gsap.fromTo(items.slice(KEEP), { opacity: 0, y: 20 }, { opacity: 1, y: 0, stagger: .035, duration: .7, ease: 'expo.out' });
-        if (hasGsap) ScrollTrigger.refresh();
-      });
+      if (hasGsap && !reduced) batchReveal($$('.ledger__list li', led), 'top 92%', { y: 30, opacity: 0 }, { y: 0, opacity: 1 }, { duration: 1, ease: 'expo.out' });
     });
     var prev = $('.preview'), img = prev && prev.querySelector('img');
     if (!prev || !finePointer || !hasGsap || reduced) return;
@@ -743,15 +916,24 @@
     };
     // mouse only: a touch tap's compatibility mouseenter gets no matching leave until the next tap elsewhere
     var isMouse = function (e) { return e.pointerType === 'mouse'; };
+    // While the page scrolls, rows slide under a resting pointer and fire enter/leave. The photo stays down until the
+    // pointer itself moves, instead of popping up for each row that passes.
+    var scrolling = false;
+    window.addEventListener('scroll', function () { if (!scrolling) { scrolling = true; setShown(false); } }, { passive: true });
     $$('[data-preview] li[data-img]').forEach(function (li) {
-      li.addEventListener('pointerenter', function (e) {
-        if (!isMouse(e)) return;
+      var show = function (e) {
         img.src = 'assets/img/' + li.getAttribute('data-img') + '.webp';
+        // a hidden photo starts at the pointer; the follow tween would otherwise fly it in from where it was last left
+        // (the first time, the top-left corner of the page)
+        if (!shown) { px(e.clientX + 28, e.clientX + 28); py(e.clientY - 120, e.clientY - 120); rot(0, 0); lastX = e.clientX; }
         setShown(true);
-      });
+      };
+      li.addEventListener('pointerenter', function (e) { if (isMouse(e) && !scrolling) show(e); });
       li.addEventListener('pointerleave', function (e) { if (isMouse(e)) setShown(false); });
       li.addEventListener('pointermove', function (e) {
         if (!isMouse(e)) return;
+        if (scrolling) { if (!e.movementX && !e.movementY) return; scrolling = false; }
+        if (!shown) { show(e); return; }
         px(e.clientX + 28); py(e.clientY - 120);
         rot(clamp((e.clientX - lastX) * .8, -12, 12)); lastX = e.clientX;
       });
@@ -764,13 +946,22 @@
     if (!route) return;
     var svg = $('.route__svg', route), base = $('.route__base', route), line = $('.route__line', route), badges = $$('.badge', route);
     var len = 0;
+    // Badge holes come from layout offsets, not getBoundingClientRect: on a refresh the badges can still be mid-entrance
+    // (lifted 50px and tilted), which bent the path through the air above them. The viewBox is the svg's own box: on phones
+    // it is a 28px strip, and a route-wide viewBox squeezed the line into a hairline.
     var build = function () {
-      var r = route.getBoundingClientRect(), W = r.width, H = r.height;
+      var sr = svg.getBoundingClientRect(), rr = route.getBoundingClientRect(), W = sr.width, H = sr.height;
+      var ox = sr.left - rr.left, oy = sr.top - rr.top, strip = mobileQ.matches;
       svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
       svg.setAttribute('preserveAspectRatio', 'none');
-      var pts = [[mobileQ.matches ? 12 : W / 2, 0]];
-      badges.forEach(function (b) { var br = b.getBoundingClientRect(); pts.push([mobileQ.matches ? 12 : br.left - r.left + br.width / 2, br.top - r.top + 14]); });
-      pts.push([mobileQ.matches ? 12 : W / 2, H]);
+      var pts = [[W / 2, 0]];
+      badges.forEach(function (b) {
+        var hole = $('.badge__hole', b);
+        var hx = b.offsetLeft + (hole ? hole.offsetLeft + hole.offsetWidth / 2 : b.offsetWidth / 2);
+        var hy = b.offsetTop + (hole ? hole.offsetTop + hole.offsetHeight / 2 : 14);
+        pts.push([strip ? W / 2 : hx - ox, hy - oy]);
+      });
+      pts.push([W / 2, H]);
       var d = 'M' + pts[0][0] + ' ' + pts[0][1];
       for (var i = 1; i < pts.length; i++) {
         var a = pts[i - 1], b = pts[i], my = (a[1] + b[1]) / 2;
@@ -801,11 +992,13 @@
   safe('dominoes', function () {
     var ds = $$('.domino');
     if (!ds.length || !hasGsap || reduced) return;
+    // hidden from the start: set only on enter, the row stood in view below the trigger line, then blinked out and rose
+    gsap.set(ds, { y: 60, opacity: 0 });
     ScrollTrigger.create({
-      trigger: '.dominoes', start: 'top 80%', once: true,
+      trigger: '.dominoes', start: 'clamp(top 80%)', once: true,
       onEnter: function () {
         var tl = gsap.timeline();
-        tl.fromTo(ds, { y: 60, opacity: 0 }, { y: 0, opacity: 1, stagger: .05, duration: .7, ease: 'back.out(1.7)' })
+        tl.to(ds, { y: 0, opacity: 1, stagger: .05, duration: .7, ease: 'back.out(1.7)' })
           .to(ds, { rotation: function (i) { return i === ds.length - 1 ? 72 : 24; }, duration: .32, ease: 'power2.in', stagger: .085 }, '+=.25')
           .to(ds, { rotation: 0, duration: 1.3, ease: 'elastic.out(1, .35)', stagger: { each: .06, from: 'end' } }, '+=.35');
       }
@@ -846,38 +1039,61 @@
     if (window.ResizeObserver) new ResizeObserver(build).observe(box);
     visible(box, function (v) { on = v; });
 
-    var setCount = function (n, li) {
+    // `show` is what the counter displays; `selected` is the row a click or key picked. Hover and focus only preview.
+    // Hover used to write `selected` itself, so the first click read as "already picked" and cleared the choice, and
+    // leaving the list wiped it. Now leaving goes back to the picked row.
+    var show = function (n, li) {
       count = n; lightUntil = performance.now() + 900;
       items.forEach(function (x) { x.classList.toggle('is-on', x === li); });
-      selected = li;
-      if (hasGsap) gsap.to(shown, { v: n, duration: 1.2, ease: 'power3.out', onUpdate: function () { nEl.textContent = Math.round(shown.v).toLocaleString('ko-KR'); } });
-      else nEl.textContent = n.toLocaleString('ko-KR');
+      // reduced motion: the figure is set, not counted
+      if (hasGsap && !reduced) gsap.to(shown, { v: n, duration: 1.2, ease: 'power3.out', overwrite: true, onUpdate: function () { nEl.textContent = Math.round(shown.v).toLocaleString('ko-KR'); } });
+      else { if (hasGsap) gsap.killTweensOf(shown); shown.v = n; nEl.textContent = n.toLocaleString('ko-KR'); }
       label.textContent = li ? li.querySelector('.n').textContent : '16 EVENTS · TOTAL';
     };
+    var rest = function () { if (selected) show(+selected.getAttribute('data-n'), selected); else show(TOTAL, null); };
+    // The counter changes by sight only; a screen reader hears the result of a pick here, once, not every counted step.
+    var said = document.createElement('p'); said.className = 'sr-only'; said.setAttribute('aria-live', 'polite');
+    box.appendChild(said);
+    var pick = function (li) {
+      selected = selected === li ? null : li;
+      items.forEach(function (x) { x.setAttribute('aria-pressed', String(x === selected)); });
+      rest();
+      said.textContent = selected ? selected.querySelector('.n').textContent + ', 객석 ' + (+selected.getAttribute('data-n')).toLocaleString('ko-KR') + '명' : '선택 해제, 전체 16개 행사 객석 ' + TOTAL.toLocaleString('ko-KR') + '명';
+    };
+    var list = $('.rec__list');
+    // the rows are buttons for the keyboard too: Tab reaches them, Enter or Space picks
+    if (list) { list.setAttribute('role', 'group'); list.setAttribute('aria-label', '레크레이션 행사를 고르면 그날의 객석이 채워집니다'); }
     items.forEach(function (li) {
       var n = +li.getAttribute('data-n');
       li.style.setProperty('--p', (n / 1200).toFixed(3));
-      li.addEventListener('mouseenter', function () { if (finePointer) setCount(n, li); });
-      li.addEventListener('click', function () { setCount(selected === li ? TOTAL : n, selected === li ? null : li); });
+      li.tabIndex = 0; li.setAttribute('role', 'button'); li.setAttribute('aria-pressed', 'false');
+      li.addEventListener('mouseenter', function () { if (finePointer) show(n, li); });
+      li.addEventListener('focus', function () { show(n, li); });
+      li.addEventListener('click', function () { pick(li); });
+      li.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(li); } });
     });
-    $('.rec__list') && $('.rec__list').addEventListener('mouseleave', function () { if (finePointer) setCount(TOTAL, null); });
-    if (hasGsap) ScrollTrigger.create({ trigger: box, start: 'top 75%', once: true, onEnter: function () { shown.v = 0; setCount(TOTAL, null); } });
+    if (list) {
+      list.addEventListener('mouseleave', function () { if (finePointer) rest(); });
+      list.addEventListener('focusout', function (e) { if (!list.contains(e.relatedTarget)) rest(); });
+    }
+    if (hasGsap) ScrollTrigger.create({ trigger: box, start: 'clamp(top 75%)', once: true, onEnter: function () { shown.v = 0; rest(); } });
 
     onTick(function (now) {
       if (!on) return;
-      var t = (now - t0) / 1000;
+      // reduced motion: the seats neither twinkle nor sweep on; they switch on or off at once
+      var t = reduced ? 0 : (now - t0) / 1000;
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
       g.clearRect(0, 0, W, H);
       // stage light at the bottom
       var sg = g.createRadialGradient(W / 2, H * 1.05, 0, W / 2, H * 1.05, H * .5);
       sg.addColorStop(0, 'rgba(255,226,166,.35)'); sg.addColorStop(1, 'rgba(255,226,166,0)');
       g.fillStyle = sg; g.fillRect(0, 0, W, H);
-      var wave = Math.min(1, (now - (lightUntil - 900)) / 900);
+      var wave = reduced ? 1 : Math.min(1, (now - (lightUntil - 900)) / 900);
       var big = count < TOTAL;
       for (var i = 0; i < seats.length; i++) {
         var st = seats[i];
         var lit = i < count && (i / Math.max(1, count)) <= wave * 1.05;
-        st.o += ((lit ? 1 : .1) - st.o) * .12;
+        st.o = reduced ? (lit ? 1 : .1) : st.o + ((lit ? 1 : .1) - st.o) * .12;
         if (st.o < .02) continue;
         var tw = .8 + .2 * Math.sin(t * 2 + st.hue * 30);
         var rr = st.hue < .5 ? 255 : 255, gg = st.hue < .33 ? 226 : st.hue < .66 ? 239 : 159, bb = st.hue < .33 ? 166 : st.hue < .66 ? 228 : 176;
@@ -893,17 +1109,44 @@
     var daw = $('.daw');
     if (!daw) return;
     var tracks = $$('.daw__track', daw), clips = $$('.daw__clips li', daw), on = false;
+    // Reduced motion: the strips stay put and scroll sideways by hand (main.css). Each strip takes focus, so the
+    // keyboard reaches it in every browser (WebKit doesn't focus a scroller by itself) and arrow keys slide it.
+    if (reduced || !hasGsap) {
+      daw.classList.add('is-static');
+      tracks.forEach(function (tr) {
+        var ul = tr.querySelector('.daw__clips'), name = tr.querySelector('.daw__label');
+        ul.tabIndex = 0; ul.setAttribute('aria-label', (name ? name.textContent : '') + ' 크레딧, 옆으로 넘겨 보기');
+        // WebKit focuses the strip but doesn't slide it with the arrow keys; do it here, the same in every browser
+        ul.addEventListener('keydown', function (e) {
+          var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+          if (!d) return;
+          e.preventDefault();
+          ul.scrollLeft += d * Math.max(80, ul.clientWidth * .4);
+        });
+      });
+      return;
+    }
     visible(daw, function (v) { on = v; });
-    var prog = .5;
-    if (hasGsap) ScrollTrigger.create({ trigger: daw, start: 'top bottom', end: 'bottom top', scrub: true, onUpdate: function (s) { prog = s.progress; } });
+    // Each strip runs its whole length while its own row is fully on screen, and ends with its last credit clear of
+    // the label and as far as the REC line.
+    // - Before, slow strips covered only part of their length.
+    // - Paced by the whole box, a row on a phone could be below or above the screen while its last credits went by,
+    //   and some credits never appeared at all.
     onTick(function () {
       if (!on) return;
-      var dw = daw.clientWidth, mid = daw.getBoundingClientRect().left + dw / 2;
-      tracks.forEach(function (tr) {
-        var ul = tr.querySelector('.daw__clips'), sp = parseFloat(tr.getAttribute('data-speed')) || .5;
-        var travel = Math.max(0, ul.scrollWidth - dw * .35);
-        var p = sp > 0 ? prog : 1 - prog;
-        var x = -(p * travel * Math.min(1, Math.abs(sp) * 1.6)) + dw * .18;
+      var vh = window.innerHeight, dw = daw.clientWidth, mid = daw.getBoundingClientRect().left + dw / 2;
+      var rows = tracks.map(function (tr) { return tr.getBoundingClientRect(); }); // read all, then write
+      tracks.forEach(function (tr, i) {
+        var ul = tr.querySelector('.daw__clips'), sp = parseFloat(tr.getAttribute('data-speed')) || .5, last = ul.lastElementChild;
+        // The row's pass runs from 0, when it has fully come up from the bottom edge, to 1, when it reaches the top
+        // edge. The strip holds still for the first 10% and the last 15% of it, so the first and last credits stay
+        // whole on screen for a while.
+        var rh = rows[i].height, raw = (vh - rh - rows[i].top) / Math.max(1, vh - rh), k = clamp((raw - .1) / .75, 0, 1);
+        var p = sp > 0 ? k : 1 - k;
+        var lw = last ? last.offsetWidth : 0, lo = last ? last.offsetLeft : 0;
+        var x0 = dw * .18, endLeft = Math.min(Math.max(140, dw / 2 - lw / 2), dw - 8 - lw);
+        var x1 = Math.min(x0, endLeft - lo);
+        var x = x0 + (x1 - x0) * p;
         ul.style.transform = 'translate3d(' + x.toFixed(1) + 'px,0,0)';
       });
       for (var i = 0; i < clips.length; i++) {
@@ -928,20 +1171,23 @@
   safe('posters', function () {
     var ps = $$('.poster');
     if (!ps.length) return;
-    if (hasGsap && !reduced) {
-      ScrollTrigger.batch(ps, {
-        start: 'top 92%', once: true,
-        onEnter: function (els) { revealBatch(els, { y: 90, opacity: 0, rotation: function () { return gsap.utils.random(-10, 10); } }, { y: 0, opacity: 1, rotation: 0 }, { duration: 1.3, ease: 'back.out(1.3)' }); }
-      });
+    var motion = hasGsap && !reduced;
+    if (motion) {
+      // GSAP owns the posters' transform from here on (entrance, tilt, hover lift). `.is-gsap` takes transform out of the
+      // CSS transition, which restarted a .6s transition on every tween frame, and the lift moves into the tween because
+      // GSAP's inline transform hides the :hover one.
+      ps.forEach(function (p) { p.classList.add('is-gsap'); });
+      batchReveal(ps, 'top 92%', { y: 90, opacity: 0, rotation: function () { return gsap.utils.random(-10, 10); } }, { y: 0, opacity: 1, rotation: 0 }, { duration: 1.3, ease: 'back.out(1.3)' });
     }
     if (!finePointer) return;
     ps.forEach(function (p) {
+      p.addEventListener('mouseenter', function () { if (motion) gsap.to(p, { y: -8, rotation: -1, duration: .6, ease: 'power3', overwrite: 'auto' }); });
       p.addEventListener('mousemove', function (e) {
         var r = p.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
         p.style.setProperty('--px', (x * 100).toFixed(1) + '%'); p.style.setProperty('--py', (y * 100).toFixed(1) + '%');
-        if (hasGsap) gsap.to(p, { rotationY: (x - .5) * 14, rotationX: -(y - .5) * 12, transformPerspective: 700, duration: .5, ease: 'power3' });
+        if (motion) gsap.to(p, { rotationY: (x - .5) * 14, rotationX: -(y - .5) * 12, transformPerspective: 700, duration: .5, ease: 'power3', overwrite: 'auto' });
       });
-      p.addEventListener('mouseleave', function () { if (hasGsap) gsap.to(p, { rotationY: 0, rotationX: 0, duration: .9, ease: 'elastic.out(1, .5)' }); });
+      p.addEventListener('mouseleave', function () { if (motion) gsap.to(p, { y: 0, rotation: 0, rotationY: 0, rotationX: 0, duration: .9, ease: 'elastic.out(1, .5)', overwrite: 'auto' }); });
     });
   });
 
@@ -951,14 +1197,14 @@
     if (!ring) return;
     var stage = $('.ring__stage', ring), cap = $('.ring__cap');
     var P = {
-      'ev-pilotday': ['2025 도선사의 날 기념식', 'official', '50% 30%'], 'ev-mou': ['고용노동부 × 한국산업인력공단 합동행사', 'official'],
-      'ev-neulbom': ['인천광역시교육청 동부거점 늘봄센터 개소식', 'official'], 'ev-smartfarm': ['2025 스마트농업 전문교육 성과공유회', 'official', '50% 45%'],
+      'ev-pilotday': ['2025 도선사의 날 기념식', 'official', '50% 30%'], 'ev-mou': ['고용노동부&한국산업인력공단 합동행사', 'official'],
+      'ev-neulbom': ['인천광역시교육청 동부거점 늘봄센터 개소식', 'official'], 'ev-smartfarm': ['2025 스마트 농업전문교육 성과공유회', 'official', '50% 45%'],
       'ev-veterans': ['전몰군경유족회 창립기념식', 'official'], 'ev-incheonbook': ['2025 인천독서대전', 'official', '50% 30%'],
       'ev-socialfair': ['제2회 인천광역시 사회적경제 박람회', 'official', '50% 35%'], 'ev-podium': ['기업 역량 혁신 행사 진행', 'official', '50% 30%'],
-      'ev-red': ['공식행사 진행', 'official', '50% 30%'], 'ev-flag': ['공식행사 현장', 'official'], 'ev-vip': ['삼성 스마트공장 비즈엑스포 VIP 투어', 'official'],
-      'ev-vipboard': ['삼성 스마트비즈엑스포 2025', 'official'], 'ev-kintex': ['2024 경기글로벌대전 · 킨텍스', 'official', '50% 30%'],
+      'ev-red': ['공식행사 진행', 'official', '50% 30%'], 'ev-flag': ['공식행사 현장', 'official'], 'ev-vip': ['삼성스마트비즈엑스포 VIP 투어', 'official'],
+      'ev-vipboard': ['삼성스마트비즈엑스포 2025', 'official'], 'ev-kintex': ['2024 경기글로벌대전 · 킨텍스', 'official', '50% 30%'],
       'ev-pilotday2': ['2025 도선사의 날', 'official', '50% 30%'], 'ev-reception': ['2025 도선사의 날 · 행사 준비', 'official'], 'ev-conf': ['컨퍼런스 진행', 'official'],
-      'ev-hall': ['행사장 전경', 'official'], 'ev-football': ['고양시 무원풋볼클럽 고별전', 'official'],
+      'ev-hall': ['행사장 전경', 'official'], 'ev-football': ['고양시무원풋볼클럽 고별전', 'official'],
       'ev-goyang': ['2026 고양시 공직자 워크숍 ICE BREAKING', 'team'], 'ev-ice': ['ICE BREAKING 현장', 'team'],
       'ev-kbiz': ['중소기업협동조합 실무자협의회 워크숍', 'team'], 'ev-teamplay': ['팀빌딩 현장', 'team'], 'ev-everland': ['Over the Wall Outdoor · 2026.03.12', 'team'],
       'ev-teamplanner': ['팀빌딩 액티비티', 'team'], 'ev-teamcert': ['팀빌딩 수료 기념', 'team'], 'ev-teamselfie': ['팀플레이 진행팀', 'team'],
@@ -966,8 +1212,8 @@
       'ev-hanam': ['하남 제일리틀야구단 송년의 밤', 'team'], 'ev-banquet': ['기업 송년회 현장', 'team'], 'ev-gym': ['학단 레크 현장', 'team'],
       'ev-camp': ['캠핑장 가족 레크', 'team'], 'ev-wonju': ['원주시 미래경제교육관 어린이경제 플리마켓', 'team'], 'ev-kids': ['어린이 행사 현장', 'team'],
       'ev-moef': ['2026 재정경제부 부모님 감사행사', 'team'],
-      'ev-jongno': ['종로 어디나 스테이지 개막식 · 광화문광장', 'stage'], 'ev-onepiece': ['원피스 이모션 팬밋업', 'stage'],
-      'ev-sunset': ['THE SHOP 더샵 × 조째즈 SUNSET LIVE', 'stage', '50% 30%'], 'ev-gxg': ['GXG 판교 게임축제 더빙 시연 · 사진 데일리게임', 'stage'],
+      'ev-jongno': ['종로 어디나 스테이지 개막식 · 광화문광장', 'stage'], 'ev-onepiece': ['원피스이모션 팬밋업', 'stage'],
+      'ev-sunset': ['THE SHOP 더샵x 조째즈 SUNSET LIVE', 'stage', '50% 30%'], 'ev-gxg': ['2025 GXG 판교 게임축제 더빙시연 · 사진 데일리게임', 'stage'],
       'ev-bora': ['법무부 보라미방송 <12시의 면회>', 'stage'], 'ev-touchtv': ['터치TV 촬영 현장', 'stage'], 'ev-class': ['스피치 · 낭독 수업', 'stage'],
       'ev-socialvalue': ['사회적가치 우수기업 무대', 'stage'], 'ev-seminar': ['세미나 진행', 'stage']
     };
@@ -976,6 +1222,15 @@
       if (f === 'all') return ALL;
       return Object.keys(P).filter(function (k) { return P[k][1] === f; }).slice(0, 18);
     };
+    // hidden copies of every caption share the caption's grid cell, so its box always has the tallest one's height
+    if (cap && cap.parentNode.classList.contains('ring__capbox')) {
+      var seen = {};
+      Object.keys(P).forEach(function (k) {
+        var t = P[k][0]; if (seen[t]) return; seen[t] = 1;
+        var s = document.createElement('span'); s.className = 'ring__cap ring__cap--sizer mono'; s.setAttribute('aria-hidden', 'true'); s.textContent = t;
+        cap.parentNode.appendChild(s);
+      });
+    }
     var items = [], N = 0, step = 0, spin = 0, vel = 0, dragging = false, lastX = 0, idleAt = 0, on = false, frontIdx = -1;
     var R = 1200, C = 900, IW = 400, IH = 290;
     var dims = function () {
@@ -997,7 +1252,8 @@
       stage.innerHTML = '';
       items = keys.map(function (k) {
         var d = document.createElement('div'); d.className = 'ring__item';
-        var im = document.createElement('img'); im.src = 'assets/img/' + k + '.webp'; im.alt = P[k][0]; im.loading = 'lazy'; im.draggable = false;
+        // loading must be set before src: assigning src first starts an eager fetch
+        var im = document.createElement('img'); im.loading = 'lazy'; im.src = 'assets/img/' + k + '.webp'; im.alt = P[k][0]; im.draggable = false;
         if (P[k][2]) im.style.objectPosition = P[k][2];
         d.appendChild(im); stage.appendChild(d);
         return { el: d, key: k };
@@ -1011,13 +1267,17 @@
 
     $$('.filters button').forEach(function (b) {
       b.addEventListener('click', function () {
-        $$('.filters button').forEach(function (x) { x.classList.toggle('is-on', x === b); });
+        $$('.filters button').forEach(function (x) { x.classList.toggle('is-on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
         var f = b.getAttribute('data-filter');
         if (hasGsap && !reduced) {
-          gsap.to(stage, { opacity: 0, scale: .9, duration: .35, ease: 'power2.in', onComplete: function () {
+          // Fade the ring box, not the 3D stage. Opacity below 1 on a preserve-3d element flattens it, so the cards
+          // spun as flat rectangles for the whole fade and snapped back into depth at the last frame.
+          gsap.to(ring, { opacity: 0, duration: .35, ease: 'power2.in', overwrite: 'auto' });
+          gsap.to(stage, { scale: .9, duration: .35, ease: 'power2.in', overwrite: 'auto', onComplete: function () {
             build(f);
             vel = 6;
-            gsap.fromTo(stage, { opacity: 0, scale: 1.08 }, { opacity: 1, scale: 1, duration: .9, ease: 'expo.out' });
+            gsap.to(ring, { opacity: 1, duration: .9, ease: 'expo.out', overwrite: 'auto' });
+            gsap.fromTo(stage, { scale: 1.08 }, { scale: 1, duration: .9, ease: 'expo.out', overwrite: 'auto' });
           } });
         } else build(f);
       });
@@ -1086,12 +1346,14 @@
           var b = m.querySelector('.msg__b'), who = m.querySelector('.msg__who');
           var typing = document.createElement('div'); typing.className = 'msg__typing'; typing.innerHTML = '<i></i><i></i><i></i>';
           var tl = gsap.timeline({ delay: Math.min(i, 4) * .38 });
+          // The bubble keeps its box (only hidden) and the dots sit inside it. Swapping the bubble out for the one-line
+          // dots shrank and regrew the chat, and everything below it jumped twice for each message.
           tl.set(m, { opacity: 1, y: 0 })
-            .set(b, { display: 'none' })
-            .add(function () { m.insertBefore(typing, b); })
+            .set(b, { visibility: 'hidden' })
+            .add(function () { b.appendChild(typing); })
             .fromTo([who, typing], { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: .35, ease: 'power2.out' })
-            .add(function () { typing.remove(); b.style.display = ''; }, '+=.42')
-            .fromTo(b, { scale: .55, opacity: 0 }, { scale: 1, opacity: 1, duration: .6, ease: 'back.out(1.9)' });
+            .add(function () { typing.remove(); }, '+=.42')
+            .fromTo(b, { scale: .55, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: .6, ease: 'back.out(1.9)' });
         });
       }
     });
@@ -1101,14 +1363,17 @@
   safe('curtains', function () {
     if (!hasGsap || reduced) return;
     $$('.curtain').forEach(function (c, i) {
-      var l = c.querySelector('.curtain__l'), r = c.querySelector('.curtain__r');
+      var l = c.querySelector('.curtain__l'), r = c.querySelector('.curtain__r'), inner = c.querySelector('.curtain__in');
       gsap.set([l, r], { scaleX: 1 });
+      // The content starts dim from the outset. Set only when the curtain began to open, it dropped from full to .4
+      // first, and a line the panels didn't cover (a long list of plays) blinked.
+      gsap.set(inner, { scale: .94, opacity: .4 });
       ScrollTrigger.create({
         trigger: c, start: 'top 80%', once: true,
         onEnter: function () {
           gsap.to(l, { scaleX: 0, skewY: 2, duration: 1.6, ease: 'expo.inOut', delay: i * .15, onComplete: function () { l.style.visibility = 'hidden'; } });
           gsap.to(r, { scaleX: 0, skewY: -2, duration: 1.6, ease: 'expo.inOut', delay: i * .15, onComplete: function () { r.style.visibility = 'hidden'; } });
-          gsap.fromTo(c.querySelector('.curtain__in'), { scale: .94, opacity: .4 }, { scale: 1, opacity: 1, duration: 1.6, ease: 'expo.out', delay: .3 + i * .15 });
+          gsap.to(inner, { scale: 1, opacity: 1, duration: 1.6, ease: 'expo.out', delay: .3 + i * .15 });
         }
       });
     });
@@ -1117,18 +1382,24 @@
   /* ---------- closing: the headline lights up like sunrise ---------- */
   safe('contact', function () {
     if (!hasGsap || reduced) return;
-    var all = [];
-    $$('.glow-line').forEach(function (line) {
+    var all = [], title = $('.contact__title'), lines = $$('.glow-line');
+    // The letters are split for the sunrise. The heading carries the sentence as its name, so a screen reader reads it
+    // once instead of letter by letter; a hidden copy of the text used to do that, and copying the title then gave it twice.
+    if (title && lines.length) title.setAttribute('aria-label', lines.map(function (l) { return l.textContent; }).join(' '));
+    lines.forEach(function (line) {
       var txt = line.textContent; line.textContent = '';
+      line.setAttribute('aria-hidden', 'true');
       txt.split('').forEach(function (ch) {
         var s = document.createElement('span'); s.className = 'gc'; s.textContent = ch === ' ' ? ' ' : ch; line.appendChild(s); all.push(s);
       });
     });
+    // Dim from the start. Set only on enter, the headline arrived fully lit, then dropped dark at the 82% line and rose again.
+    gsap.set(all, { opacity: .12, y: 30, color: '#25163e' });
     ScrollTrigger.create({
-      trigger: '.contact__title', start: 'top 82%', once: true,
+      trigger: '.contact__title', start: 'clamp(top 82%)', once: true,
       onEnter: function () {
         gsap.timeline()
-          .fromTo(all, { opacity: .12, y: 30, color: '#25163e' }, { opacity: 1, y: 0, stagger: .045, duration: .9, ease: 'expo.out' })
+          .to(all, { opacity: 1, y: 0, stagger: .045, duration: .9, ease: 'expo.out' })
           .to(all, { color: '#c06a12', textShadow: '0 0 28px rgba(255,180,80,.75)', stagger: .03, duration: .35, yoyo: true, repeat: 1, ease: 'sine.inOut' }, .3);
       }
     });
@@ -1143,13 +1414,15 @@
     var inner = $('.card3d__in', card), flipped = false, tx = 0, ty = 0;
     inner.style.transition = 'none';
     var apply = function (dur) {
-      if (hasGsap) gsap.to(inner, { rotationY: (flipped ? 180 : 0) + ty, rotationX: tx, duration: dur, ease: 'expo.out' });
+      // reduced motion: the card still turns over, but at once instead of in a 1.1s spin
+      if (hasGsap) gsap.to(inner, { rotationY: (flipped ? 180 : 0) + ty, rotationX: tx, duration: reduced ? 0 : dur, ease: 'expo.out' });
       else inner.style.transform = 'rotateY(' + ((flipped ? 180 : 0) + ty) + 'deg) rotateX(' + tx + 'deg)';
     };
     var flip = function () { flipped = !flipped; apply(1.1); };
     card.addEventListener('click', flip);
     card.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(); } });
-    if (!finePointer) return;
+    // the pointer tilt is motion for its own sake: off under reduced motion
+    if (!finePointer || reduced) return;
     card.addEventListener('pointermove', function (e) {
       var r = card.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
       ty = (x - .5) * 26; tx = -(y - .5) * 20;
@@ -1191,12 +1464,31 @@
   safe('video', function () {
     var modal = $('#modal');
     if (!modal || isArtifact) return;
-    var frame = $('.modal__frame', modal), lastFocus = null;
+    var frame = $('.modal__frame', modal), lastFocus = null, xBtn = $('.modal__x', modal), out = $('.modal__out', modal);
+    // Keeping focus in the dialog:
+    // - Everything else on the page is inert while it is open, so neither Tab nor a screen reader reaches the page
+    //   behind it.
+    // - Its stops are the close button, the video and the "YouTube에서 보기" link. The button and the link carry
+    //   tabindex="0" because WebKit's default Tab skips plain buttons and links. Tab from the link and Shift+Tab from
+    //   the button wrap round to the other end; Tab out of the cross-origin frame lands on the link by itself.
+    // - The focus stops used before failed one way or another: hidden ones broke the aria-hidden-focus rule, and button
+    //   ones were skipped by WebKit's Tab and read as three close buttons.
+    var shut = [];
+    var setInert = function (on) {
+      if (on) {
+        // once only: a second open while open found everything already inert, recorded nothing, and closing then left
+        // the whole page inert
+        if (shut.length) return;
+        shut = Array.prototype.filter.call(document.body.children, function (el) { return el !== modal && el.tagName !== 'SCRIPT' && !el.inert; });
+        shut.forEach(function (el) { el.inert = true; });
+      } else { shut.forEach(function (el) { el.inert = false; }); shut = []; }
+    };
     var close = function () {
       if (modal.hidden) return;
       frame.innerHTML = '';
+      setInert(false);
       modal.hidden = true;
-      lenis && lenis.start();
+      lockScroll(false);
       lastFocus && lastFocus.focus();
     };
     document.addEventListener('click', function (e) {
@@ -1207,19 +1499,26 @@
         if (Voice && Voice.playing) Voice.pause();
         var f = document.createElement('iframe');
         f.src = 'https://www.youtube-nocookie.com/embed/' + a.getAttribute('data-video') + '?autoplay=1&rel=0&playsinline=1';
+        // fullscreen is granted by `allow` alone; setting allowFullscreen as well only drew a console warning
         f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
-        f.allowFullscreen = true;
         f.title = '유튜브 영상';
         frame.innerHTML = ''; frame.appendChild(f);
+        if (out) out.href = 'https://www.youtube.com/watch?v=' + encodeURIComponent(a.getAttribute('data-video'));
         modal.hidden = false;
-        lenis && lenis.stop();
+        setInert(true);
+        lockScroll(true);
         if (hasGsap && !reduced) gsap.fromTo('.modal__box', { scale: .85, opacity: 0, y: 30 }, { scale: 1, opacity: 1, y: 0, duration: .7, ease: 'expo.out' });
         $('.modal__x', modal).focus();
         return;
       }
       if (e.target.closest('[data-close]')) close();
     });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    document.addEventListener('keydown', function (e) { if (!modal.hidden && e.key === 'Escape') close(); });
+    modal.addEventListener('keydown', function (e) {
+      if (e.key !== 'Tab' || !out) return;
+      if (!e.shiftKey && document.activeElement === out) { e.preventDefault(); xBtn.focus(); }
+      else if (e.shiftKey && document.activeElement === xBtn) { e.preventDefault(); out.focus(); }
+    });
   });
 
   /* ---------- tilt on portraits ---------- */
@@ -1296,6 +1595,69 @@
         g.fill(); g.restore();
       }
       g.globalCompositeOperation = 'source-over';
+    });
+  });
+
+  /* ---------- keep the visitor's place when the width changes ---------- */
+  // A rotation, or a window crossing 900px, changes the page's length: the range pin's 140% comes or goes and text
+  // rewraps. ScrollTrigger keeps scrollY as a number, so the screen landed in another section. The section at the top
+  // edge, and how far into it the screen is, are noted while scrolling; after a refresh at a new width the page is put
+  // back there. Noting stops from the resize until that refresh, when layout shifts are not the visitor's scrolling.
+  safe('keep-place', function () {
+    if (!hasGsap) return;
+    var secs = $$('[data-sky]'), mark = null, frozen = false, lastY = -1;
+    // The window's size as far as places go: the width everywhere, and the height too with a mouse (a resized
+    // window changes the range pin's 140% spacer). On touch screens the height changes whenever the address bar
+    // slides, so it is left out there.
+    var size = function () { return window.innerWidth + 'x' + (finePointer ? window.innerHeight : 0); };
+    var note = function () {
+      var y = window.scrollY, at = null;
+      for (var i = 0; i < secs.length; i++) {
+        var r = secs[i].getBoundingClientRect();
+        if (r.top <= 1 || !at) at = { el: secs[i], frac: r.height ? clamp(-r.top / r.height, 0, 1) : 0 };
+        if (r.top > 1) break;
+      }
+      // a visitor at the very bottom stays at the bottom, wherever that ends up
+      if (at) { at.w = size(); at.y = y; at.end = y >= document.documentElement.scrollHeight - window.innerHeight - 2; mark = at; }
+    };
+    // Noted four times a second while scrolling and once when it stops. Noting on every frame read the layout right
+    // after the frame's animations had written to it, a forced layout per frame, and shifted their timing.
+    var notedAt = 0;
+    onTick(function (now) {
+      var y = window.scrollY;
+      if (frozen || y === lastY || now - notedAt < 250) return;
+      lastY = y; notedAt = now; note();
+    });
+    ScrollTrigger.addEventListener('scrollEnd', function () { if (!frozen) { lastY = window.scrollY; note(); } });
+    window.addEventListener('resize', function () {
+      if (!mark || size() === mark.w) return;
+      frozen = true;
+      // A jump on its way is aimed again at once (its section moved with the new width), and once more after the
+      // refresh has re-measured the pins. ScrollTrigger may hold that refresh until the jump stops, and the jump then
+      // ran on to the old target position.
+      if (heading) { reaim = true; if (lenis) lenis.resize(); scrollToEl(heading); }
+    });
+    ScrollTrigger.addEventListener('refresh', function () {
+      if (frozen && heading) {
+        // an anchor jump was on its way: aim it again at its section, measured at the new width
+        reaim = false;
+        if (lenis) lenis.resize();
+        scrollToEl(heading);
+        frozen = false; lastY = -1;
+        return;
+      }
+      reaim = false;
+      if (frozen && mark && size() !== mark.w) {
+        var r = mark.el.getBoundingClientRect(), top = r.top + window.scrollY;
+        var to = mark.end ? document.documentElement.scrollHeight - window.innerHeight : Math.round(top + mark.frac * r.height);
+        if (Math.abs(to - window.scrollY) > 2) {
+          // Lenis must re-measure first: it still held the old page length, and clamped the jump to that (rotating an
+          // iPad back to portrait at the reviews landed in the team section)
+          if (lenis) { lenis.resize(); lenis.scrollTo(to, { immediate: true, force: true }); } else window.scrollTo(0, to);
+          ScrollTrigger.update();
+        }
+      }
+      frozen = false; lastY = -1;
     });
   });
 
