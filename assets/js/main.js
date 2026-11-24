@@ -714,10 +714,10 @@
     var ro = { tone: $('[data-ro="tone"]', sec), energy: $('[data-ro="energy"]', sec), tempo: $('[data-ro="tempo"]', sec) };
     var roN = { tone: $('[data-ro-n="tone"]', sec), energy: $('[data-ro-n="energy"]', sec), tempo: $('[data-ro-n="tempo"]', sec) };
     var MODES = [
-      { m: 'MODE 01 · 의전', t: 'VIP 의전 아나운싱', d: '장관과 기업 대표가 함께하는 VIP 투어. 동선과 시간을 지키며 한 마디도 흐트러지지 않는 차분한 진행.', w: 'Elegant', v: '의전' },
+      { m: 'MODE 01 · VIP', t: 'VIP 의전 아나운싱', d: '장관과 기업 대표가 함께하는 VIP 투어. 동선과 시간을 지키며 한 마디도 흐트러지지 않는 차분한 진행.', w: 'Elegant', v: 'VIP' },
       { m: 'MODE 02 · 공식행사', t: '격식 있는 공식행사', d: '내빈 소개부터 폐회 선언까지. 정확한 전달력과 신뢰감으로 행사의 품격을 지킵니다.', w: 'Trusted', v: '공식행사' },
       { m: 'MODE 03 · 팀빌딩', t: '몰입을 이끄는 팀빌딩', d: '목표를 함께 이루도록 판을 깔아 주는 촉진자. 긴장은 풀고 몰입은 높입니다.', w: 'Engaging', v: '팀빌딩' },
-      { m: 'MODE 04 · 레크', t: '현장을 뒤집는 레크리에이션', d: '1,200명 앞에서도 흔들리지 않는 에너지. 웃음과 함성으로 현장을 가득 채웁니다.', w: 'Bright!', v: '레크' }
+      { m: 'MODE 04 · 레크', t: '현장을 뒤집는 레크레이션', d: '1,200명 앞에서도 흔들리지 않는 에너지. 웃음과 함성으로 현장을 가득 채웁니다.', w: 'Bright!', v: '레크' }
     ];
     var val = 0, target = 0, dragging = false, mode = -1, on = false, drawn = -1;
     var cv = $('.range__wave', sec), g = cv.getContext('2d'), W = 0, H = 0, dpr = 1, tw = 0, track = $('.fader__track', sec);
@@ -1062,7 +1062,7 @@
     };
     var list = $('.rec__list');
     // the rows are buttons for the keyboard too: Tab reaches them, Enter or Space picks
-    if (list) { list.setAttribute('role', 'group'); list.setAttribute('aria-label', '레크리에이션 행사를 고르면 그날의 객석이 채워집니다'); }
+    if (list) { list.setAttribute('role', 'group'); list.setAttribute('aria-label', '레크레이션 행사를 고르면 그날의 객석이 채워집니다'); }
     items.forEach(function (li) {
       var n = +li.getAttribute('data-n');
       li.style.setProperty('--p', (n / 1200).toFixed(3));
